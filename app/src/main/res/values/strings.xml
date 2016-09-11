@@ -1,7 +1,7 @@
 <resources>
     <string name="app_name">OneTimePad</string>
     <string name="app_launcher">OneTimePad</string>
-    <string name="no_accounts">No account has been added yet</string>
+    <string name="no_accounts">No accounts found, use the menu or + to scan a QR Code</string>
     <string name="menu_delete">Delete</string>
     <string name="menu_edit">Edit</string>
     <string name="menu_scan">Scan QR Code</string>
