@@ -1,4 +1,4 @@
-package net.bierbaumer.otp_authenticator;
+package com.onest8.onetimepad;
 
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;

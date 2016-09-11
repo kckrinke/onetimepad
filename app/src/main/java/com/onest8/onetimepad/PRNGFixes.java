@@ -1,4 +1,4 @@
-package net.bierbaumer.otp_authenticator;
+package com.onest8.onetimepad;
 
 /*
  * This software is provided 'as-is', without any express or implied

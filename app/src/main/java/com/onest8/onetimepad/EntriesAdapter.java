@@ -1,4 +1,4 @@
-package net.bierbaumer.otp_authenticator;
+package com.onest8.onetimepad;
 
 import android.content.ClipData;
 import android.graphics.Color;

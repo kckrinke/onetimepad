@@ -5,7 +5,7 @@ android {
     buildToolsVersion "23.0.2"
 
     defaultConfig {
-        applicationId "net.bierbaumer.otp_authenticator"
+        applicationId "com.onest8.onetimepad"
         minSdkVersion 15
         targetSdkVersion 23
         versionCode 3

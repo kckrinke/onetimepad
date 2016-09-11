@@ -1,4 +1,4 @@
-package net.bierbaumer.otp_authenticator;
+package com.onest8.onetimepad;
 
 import android.content.Context;
 
@@ -20,8 +20,8 @@ import javax.crypto.SecretKey;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 
-import static net.bierbaumer.otp_authenticator.Utils.readFully;
-import static net.bierbaumer.otp_authenticator.Utils.writeFully;
+import static com.onest8.onetimepad.Utils.readFully;
+import static com.onest8.onetimepad.Utils.writeFully;
 
 public class EncryptionHelper {
     private final static String ALGORITHM = "AES/GCM/NoPadding";
