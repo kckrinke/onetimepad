@@ -88,13 +88,7 @@ public class MainActivity extends AppCompatActivity implements  ActionMode.Callb
 
     private Entry nextSelection = null;
     private void showNoAccount(){
-        Snackbar noAccountSnackbar = Snackbar.make(fab, R.string.no_accounts, Snackbar.LENGTH_INDEFINITE)
-                .setAction(R.string.button_add, new View.OnClickListener() {
-                    @Override
-                    public void onClick(View view) {
-                        scanQRCode();
-                    }
-                });
+        Snackbar noAccountSnackbar = Snackbar.make(fab, R.string.no_accounts, Snackbar.LENGTH_INDEFINITE);
         noAccountSnackbar.show();
     }
 
