@@ -220,8 +220,10 @@ public class MainActivity extends AppCompatActivity implements  ActionMode.Callb
             WebView view = (WebView) LayoutInflater.from(this).inflate(R.layout.dialog_about, null);
             view.loadUrl("file:///android_res/raw/about.html");
             new AlertDialog.Builder(this).setView(view).show();
-
             return true;
+        }
+        if(id == R.id.action_scan){
+            scanQRCode();
         }
         return super.onOptionsItemSelected(item);
     }
