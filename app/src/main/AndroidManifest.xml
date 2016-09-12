@@ -14,10 +14,14 @@
             android:name="com.onest8.onetimepad.MainActivity"
             android:label="@string/app_launcher"
             android:theme="@style/AppTheme.NoActionBar">
-            <intent-filter>
+            <intent-filter android:autoVerify="true">
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="otpauth" />
+                <data android:host="totp" />
             </intent-filter>
         </activity>
         <activity

@@ -7,6 +7,7 @@ import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.annotation.NonNull;
@@ -154,6 +155,12 @@ public class MainActivity extends AppCompatActivity implements  ActionMode.Callb
                 handler.postDelayed(this, 1000);
             }
         };
+
+        Intent sender = getIntent();
+        Uri data = sender.getData();
+        if (data != null) {
+            addNewAccount(data.toString());
+        }
     }
 
     @Override
@@ -170,34 +177,34 @@ public class MainActivity extends AppCompatActivity implements  ActionMode.Callb
         handler.removeCallbacks(handlerTask);
     }
 
+    protected void addNewAccount(String uri_data) {
+        try {
+            Entry e = new Entry(uri_data);
+            e.setCurrentOTP(TOTPHelper.generate(e.getSecret()));
+            entries.add(e);
+            SettingsHelper.store(this, entries);
+            adapter.notifyDataSetChanged();
+            Snackbar.make(fab, R.string.msg_account_added, Snackbar.LENGTH_LONG).show();
+        } catch (Exception e) {
+            Snackbar.make(fab, R.string.msg_invalid_qr_code, Snackbar.LENGTH_LONG).setCallback(new Snackbar.Callback() {
+                @Override
+                public void onDismissed(Snackbar snackbar, int event) {
+                super.onDismissed(snackbar, event);
+                if(entries.isEmpty()){
+                    showNoAccount();
+                }
+                }
+            }).show();
+        }
+    }
+
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent intent) {
         super.onActivityResult(requestCode, resultCode, intent);
 
         if (requestCode == IntentIntegrator.REQUEST_CODE && resultCode == Activity.RESULT_OK) {
-            try {
-                Entry e = new Entry(intent.getStringExtra(Intents.Scan.RESULT));
-                e.setCurrentOTP(TOTPHelper.generate(e.getSecret()));
-                entries.add(e);
-                SettingsHelper.store(this, entries);
-
-                adapter.notifyDataSetChanged();
-
-                Snackbar.make(fab, R.string.msg_account_added, Snackbar.LENGTH_LONG).show();
-            } catch (Exception e) {
-                Snackbar.make(fab, R.string.msg_invalid_qr_code, Snackbar.LENGTH_LONG).setCallback(new Snackbar.Callback() {
-                    @Override
-                    public void onDismissed(Snackbar snackbar, int event) {
-                        super.onDismissed(snackbar, event);
-
-                        if(entries.isEmpty()){
-                            showNoAccount();
-                        }
-                    }
-                }).show();
-
-                return;
-            }
+            addNewAccount(intent.getStringExtra(Intents.Scan.RESULT));
+            return;
         }
 
         if(entries.isEmpty()){
