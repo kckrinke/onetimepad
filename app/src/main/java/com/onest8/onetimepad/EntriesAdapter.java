@@ -57,8 +57,15 @@ public class EntriesAdapter extends BaseAdapter {
 
         TextView tt2 = (TextView) v.findViewById(R.id.textViewOTP);
         v.setTag(position);
-        tt2.setText(getItem(position).getCurrentOTP());
-
+        String otp = getItem(position).getCurrentOTP();
+        if (getItem(position).getShowOTP()) {
+            tt2.setText(otp);
+        } else if (otp != null) {
+            StringBuilder s = new StringBuilder();
+            for (int i = 0; i < otp.length(); i++)
+                s.append('-');
+            tt2.setText(s);
+        }
 
         v.setOnDragListener(new View.OnDragListener() {
 
@@ -114,6 +121,14 @@ public class EntriesAdapter extends BaseAdapter {
         });
 
         return v;
+    }
+
+    public void setShowOTP(int idx) {
+        for (int i = 0; i<getEntries().size(); i++) {
+            Entry e = getEntries().get(i);
+            e.setShowOTP(false);
+        }
+        getEntries().get(idx).setShowOTP(true);
     }
 
     public List<Entry> getEntries() {

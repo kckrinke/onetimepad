@@ -130,6 +130,13 @@ public class MainActivity extends AppCompatActivity implements  ActionMode.Callb
             }
         });
 
+        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+                ((EntriesAdapter)adapterView.getAdapter()).setShowOTP(i);
+            }
+        });
+
         if(entries.isEmpty()){
             showNoAccount();
         }

@@ -16,6 +16,7 @@ public class Entry {
     private byte[] secret;
     private String label;
     private String currentOTP;
+    private boolean showOTP;
 
     public Entry (){
 
@@ -42,7 +43,7 @@ public class Entry {
         if(issuer != null){
             label = issuer +" - "+label;
         }
-
+        this.showOTP = false;
         this.label = label;
         this.secret = new Base32().decode(secret.toUpperCase());
     }
@@ -83,6 +84,10 @@ public class Entry {
     public void setCurrentOTP(String currentOTP) {
         this.currentOTP = currentOTP;
     }
+
+    public boolean getShowOTP() { return showOTP; }
+
+    public void setShowOTP(boolean showOTP) { this.showOTP = showOTP; }
 
     @Override
     public boolean equals(Object o) {
