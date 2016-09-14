@@ -39,7 +39,7 @@ import java.util.ArrayList;
 public class MainActivity extends AppCompatActivity implements  ActionMode.Callback {
     private ArrayList<Entry> entries;
     private EntriesAdapter adapter;
-    private FloatingActionButton fab;
+    private View snackView;
 
     private Handler handler;
     private Runnable handlerTask;
@@ -70,7 +70,7 @@ public class MainActivity extends AppCompatActivity implements  ActionMode.Callb
                // permission was granted
                doScanQRCode();
            } else {
-               Snackbar.make(fab, R.string.msg_camera_permission, Snackbar.LENGTH_LONG).setCallback(new Snackbar.Callback() {
+               Snackbar.make(snackView, R.string.msg_camera_permission, Snackbar.LENGTH_LONG).setCallback(new Snackbar.Callback() {
                    @Override
                    public void onDismissed(Snackbar snackbar, int event) {
                        super.onDismissed(snackbar, event);
@@ -89,7 +89,7 @@ public class MainActivity extends AppCompatActivity implements  ActionMode.Callb
 
     private Entry nextSelection = null;
     private void showNoAccount(){
-        Snackbar noAccountSnackbar = Snackbar.make(fab, R.string.no_accounts, Snackbar.LENGTH_INDEFINITE);
+        Snackbar noAccountSnackbar = Snackbar.make(snackView, R.string.no_accounts, Snackbar.LENGTH_INDEFINITE);
         noAccountSnackbar.show();
     }
 
@@ -100,15 +100,8 @@ public class MainActivity extends AppCompatActivity implements  ActionMode.Callb
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_SECURE, WindowManager.LayoutParams.FLAG_SECURE);
         setContentView(R.layout.activity_main);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        snackView = toolbar;
         setSupportActionBar(toolbar);
-
-        fab = (FloatingActionButton) findViewById(R.id.action_scan);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                scanQRCode();
-            }
-        });
 
         final ListView listView = (ListView) findViewById(R.id.listView);
         final ProgressBar progressBar = (ProgressBar) findViewById(R.id.progressBar);
@@ -191,9 +184,9 @@ public class MainActivity extends AppCompatActivity implements  ActionMode.Callb
             entries.add(e);
             SettingsHelper.store(this, entries);
             adapter.notifyDataSetChanged();
-            Snackbar.make(fab, R.string.msg_account_added, Snackbar.LENGTH_LONG).show();
+            Snackbar.make(snackView, R.string.msg_account_added, Snackbar.LENGTH_LONG).show();
         } catch (Exception e) {
-            Snackbar.make(fab, R.string.msg_invalid_qr_code, Snackbar.LENGTH_LONG).setCallback(new Snackbar.Callback() {
+            Snackbar.make(snackView, R.string.msg_invalid_qr_code, Snackbar.LENGTH_LONG).setCallback(new Snackbar.Callback() {
                 @Override
                 public void onDismissed(Snackbar snackbar, int event) {
                 super.onDismissed(snackbar, event);
@@ -272,7 +265,7 @@ public class MainActivity extends AppCompatActivity implements  ActionMode.Callb
                 public void onClick(DialogInterface dialog, int whichButton) {
                     entries.remove(adapter.getCurrentSelection());
 
-                    Snackbar.make(fab, R.string.msg_account_removed, Snackbar.LENGTH_LONG).setCallback(new Snackbar.Callback() {
+                    Snackbar.make(snackView, R.string.msg_account_removed, Snackbar.LENGTH_LONG).setCallback(new Snackbar.Callback() {
                         @Override
                         public void onDismissed(Snackbar snackbar, int event) {
                             super.onDismissed(snackbar, event);
