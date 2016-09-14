@@ -1,7 +1,11 @@
 package com.onest8.onetimepad;
 
+import android.app.Activity;
 import android.content.ClipData;
+import android.content.ClipboardManager;
+import android.content.Context;
 import android.graphics.Color;
+import android.support.design.widget.Snackbar;
 import android.view.DragEvent;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
@@ -44,13 +48,14 @@ public class EntriesAdapter extends BaseAdapter {
             v = vi.inflate(R.layout.row, parent, false);
         }
 
-        v.setBackgroundColor(Color.TRANSPARENT);
-
-        if(getEntries().get(position) == getCurrentSelection()){
-            v.setBackgroundColor(parent.getResources().getColor(R.color.primary_light));
+        if (MainActivity.currentEntryIndex == position) {
+            v.setBackgroundColor(Color.LTGRAY);
+        } else {
+            v.setBackgroundColor(Color.TRANSPARENT);
         }
-
-
+        if (getEntries().get(position) == getCurrentSelection()) {
+            v.setBackgroundColor(Color.DKGRAY);
+        }
 
         final TextView tt1 = (TextView) v.findViewById(R.id.textViewLabel);
         tt1.setText(getItem(position).getLabel());
@@ -65,6 +70,22 @@ public class EntriesAdapter extends BaseAdapter {
             for (int i = 0; i < otp.length(); i++)
                 s.append('-');
             tt2.setText(s);
+        }
+
+        if (MainActivity.currentEntryIndex == position) {
+            tt2.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    Entry entry = getItem(MainActivity.currentEntryIndex);
+                    ClipData clip = ClipData.newPlainText(entry.getLabel(), entry.getCurrentOTP());
+                    Context context = view.getContext();
+                    ClipboardManager clipboard = (ClipboardManager) (context.getSystemService(Context.CLIPBOARD_SERVICE));
+                    clipboard.setPrimaryClip(clip);
+                    Snackbar.make(MainActivity.currentEntryView, R.string.msg_clipboard_copied, Snackbar.LENGTH_SHORT).show();
+                    MainActivity.clipboardExpires = true;
+
+                }
+            });
         }
 
         v.setOnDragListener(new View.OnDragListener() {
@@ -128,7 +149,19 @@ public class EntriesAdapter extends BaseAdapter {
             Entry e = getEntries().get(i);
             e.setShowOTP(false);
         }
-        getEntries().get(idx).setShowOTP(true);
+        if (idx >= 0)
+            getEntries().get(idx).setShowOTP(true);
+    }
+
+    public Entry getEntryByLabel(String label) {
+
+        for (int i = 0; i<getEntries().size(); i++) {
+            Entry e = getEntries().get(i);
+            if (e.getLabel().contains(label))
+                return e;
+        }
+        return null;
+
     }
 
     public List<Entry> getEntries() {
