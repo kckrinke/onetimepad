@@ -2,11 +2,16 @@ package com.onest8.onetimepad;
 
 import android.Manifest;
 import android.animation.ObjectAnimator;
+import android.annotation.TargetApi;
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.content.ClipData;
+import android.content.ClipboardManager;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
@@ -17,6 +22,7 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.ActionMode;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -30,6 +36,7 @@ import android.widget.AdapterView;
 import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.ProgressBar;
+import android.widget.Toast;
 
 import com.google.zxing.client.android.Intents;
 import com.google.zxing.integration.android.IntentIntegrator;
@@ -40,6 +47,10 @@ public class MainActivity extends AppCompatActivity implements  ActionMode.Callb
     private ArrayList<Entry> entries;
     private EntriesAdapter adapter;
     private View snackView;
+    public static int currentEntryIndex = -1;
+    public static View currentEntryView = null;
+    public static boolean clipboardExpires = false;
+    public static boolean inForeground = true;
 
     private Handler handler;
     private Runnable handlerTask;
@@ -96,6 +107,7 @@ public class MainActivity extends AppCompatActivity implements  ActionMode.Callb
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        inForeground = true;
         setTitle(R.string.app_name);
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_SECURE, WindowManager.LayoutParams.FLAG_SECURE);
         setContentView(R.layout.activity_main);
@@ -118,7 +130,6 @@ public class MainActivity extends AppCompatActivity implements  ActionMode.Callb
             public boolean onItemLongClick(AdapterView<?> adapterView, View view, int i, long l) {
                 nextSelection = entries.get(i);
                 startActionMode(MainActivity.this);
-
                 return true;
             }
         });
@@ -126,7 +137,18 @@ public class MainActivity extends AppCompatActivity implements  ActionMode.Callb
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-                ((EntriesAdapter)adapterView.getAdapter()).setShowOTP(i);
+                if (i == currentEntryIndex) {
+                    adapter.setShowOTP(-1);
+                    ClipData clip = ClipData.newPlainText("","");
+                    ClipboardManager clipboard = (ClipboardManager) getSystemService(CLIPBOARD_SERVICE);
+                    clipboard.setPrimaryClip(clip);
+                    currentEntryIndex = -1;
+                    currentEntryView = null;
+                    return;
+                }
+                currentEntryView = view;
+                currentEntryIndex = i;
+                adapter.setShowOTP(i);
             }
         });
 
@@ -140,15 +162,27 @@ public class MainActivity extends AppCompatActivity implements  ActionMode.Callb
             @Override
             public void run() {
                 int progress =  (int) (System.currentTimeMillis() / 1000) % 30 ;
-                progressBar.setProgress(progress*100);
-
-                ObjectAnimator animation = ObjectAnimator.ofInt(progressBar, "progress", (progress+1)*100);
-                animation.setDuration(1000);
-                animation.setInterpolator(new LinearInterpolator());
-                animation.start();
+                if (inForeground) {
+                    progressBar.setProgress(progress * 100);
+                    ObjectAnimator animation = ObjectAnimator.ofInt(progressBar, "progress", (progress + 1) * 100);
+                    animation.setDuration(1000);
+                    animation.setInterpolator(new LinearInterpolator());
+                    animation.start();
+                }
 
                 for(int i =0;i < adapter.getCount(); i++){
-                    adapter.getItem(i).setCurrentOTP(TOTPHelper.generate(adapter.getItem(i).getSecret()));
+                    Entry entry = adapter.getItem(i);
+                    entry.setCurrentOTP(TOTPHelper.generate(entry.getSecret()));
+                    if (progress <= 1 && clipboardExpires) {
+                        ClipboardManager clipboard = (ClipboardManager) getSystemService(CLIPBOARD_SERVICE);
+                        ClipData clip = ClipData.newPlainText("","");
+                        clipboard.setPrimaryClip(clip);
+                        if (inForeground)
+                            Snackbar.make(snackView, R.string.msg_clipboard_cleared, Snackbar.LENGTH_SHORT).show();
+                        else
+                            Toast.makeText(getApplicationContext(),R.string.msg_clipboard_cleared,Toast.LENGTH_SHORT).show();
+                        clipboardExpires = false;
+                    }
                 }
                 adapter.notifyDataSetChanged();
 
@@ -166,15 +200,17 @@ public class MainActivity extends AppCompatActivity implements  ActionMode.Callb
     @Override
     public void onResume() {
         super.onResume();
-
+        inForeground = true;
         handler.post(handlerTask);
     }
 
     @Override
     public void onPause() {
         super.onPause();
-
-        handler.removeCallbacks(handlerTask);
+        inForeground = false;
+        if (!clipboardExpires) {
+            handler.removeCallbacks(handlerTask);
+        }
     }
 
     protected void addNewAccount(String uri_data) {
@@ -228,9 +264,55 @@ public class MainActivity extends AppCompatActivity implements  ActionMode.Callb
             view.loadUrl("file:///android_res/raw/about.html");
             new AlertDialog.Builder(this).setView(view).show();
             return true;
-        }
-        if(id == R.id.action_scan){
+        } else if(id == R.id.action_scan){
             scanQRCode();
+        } else if (id == R.id.action_clipboard) {
+            ClipboardManager myClipboard = (ClipboardManager)getSystemService(CLIPBOARD_SERVICE);
+            ClipData abc = myClipboard.getPrimaryClip();
+            if (abc.getItemCount() >= 1) {
+                ClipData.Item clipItem = abc.getItemAt(0);
+                addNewAccount(clipItem.getText().toString());
+            } else {
+                Snackbar.make(snackView, R.string.msg_clipboard_no_paste, Snackbar.LENGTH_SHORT).show();
+            }
+        } else if (id == R.id.action_manual) {
+            LayoutInflater inflater = (LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+            final View manualEntryView = inflater.inflate(R.layout.manual_entry, null, false);
+            final EditText issuerLabelEntry = (EditText) manualEntryView.findViewById(R.id.issuerLabelEntry);
+            final EditText secretCodeEntry = (EditText) manualEntryView.findViewById(R.id.secretCodeEntry);
+            new AlertDialog.Builder(MainActivity.this).setView(manualEntryView)
+                    .setTitle(R.string.menu_manual)
+                    .setPositiveButton(R.string.button_add, new DialogInterface.OnClickListener() {
+                                @TargetApi(11)
+                                public void onClick(DialogInterface dialog, int id) {
+                                    String label = issuerLabelEntry.getText().toString();
+                                    String secret = secretCodeEntry.getText().toString();
+                                    if (label.isEmpty()) {
+                                        label = "Untitled";
+                                        int c = 1;
+                                        while (adapter.getEntryByLabel(label) != null) {
+                                            label = "Untitled " + String.valueOf(c);
+                                            c++;
+                                        }
+                                    }
+                                    if (!secret.isEmpty()) {
+                                        String customUri = "otpauth://totp/" + label + "?secret=" + secret;
+                                        addNewAccount(customUri);
+                                    } else {
+                                        Snackbar.make(snackView, R.string.msg_missing_secret, Snackbar.LENGTH_SHORT).show();
+                                    }
+                                    dialog.cancel();
+                                }
+                            }
+                    )
+                    .setNegativeButton(R.string.button_cancel, new DialogInterface.OnClickListener() {
+                                @TargetApi(11)
+                                public void onClick(DialogInterface dialog, int id) {
+                                    dialog.cancel();
+                                }
+                            }
+                    )
+            .show();
         }
         return super.onOptionsItemSelected(item);
     }
