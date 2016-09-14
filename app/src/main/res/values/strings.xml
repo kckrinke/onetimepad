@@ -1,9 +1,11 @@
 <resources>
     <string name="app_name">OneTimePad</string>
     <string name="app_launcher">OneTimePad</string>
-    <string name="no_accounts">No accounts found, use the menu or + to scan a QR Code</string>
+    <string name="no_accounts">No accounts found, use the menu to add one</string>
     <string name="menu_delete">Delete</string>
     <string name="menu_edit">Edit</string>
+    <string name="menu_manual">Manual Entry</string>
+    <string name="menu_paste">Paste URI</string>
     <string name="menu_scan">Scan QR Code</string>
     <string name="menu_about">About</string>
     <string name="msg_invalid_qr_code">Invalid QR Code</string>
@@ -17,4 +19,13 @@
     <string name="alert_rename">Rename</string>
     <string name="alert_remove">"Remove "</string>
     <string name="msg_camera_permission">Camera permission not granted</string>
+    <string name="msg_clipboard_copied">One time pad copied to clipboard</string>
+    <string name="msg_clipboard_updated">One time pad updated clipboard</string>
+    <string name="msg_clipboard_no_paste">No valid URI found</string>
+    <string name="manual_issuer_label">Issuer Label:</string>
+    <string name="manual_secret_label">Secret Code</string>
+    <string name="manual_issuer_hints">Account Name</string>
+    <string name="manual_secret_hints">Generated Code</string>
+    <string name="msg_missing_secret">Secret Code is mandatory!</string>
+    <string name="msg_clipboard_cleared">OTP clipboard expired</string>
 </resources>
