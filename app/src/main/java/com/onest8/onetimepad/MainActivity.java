@@ -11,18 +11,15 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.annotation.NonNull;
-import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.view.ActionMode;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -110,6 +107,7 @@ public class MainActivity extends AppCompatActivity implements  ActionMode.Callb
         inForeground = true;
         setTitle(R.string.app_name);
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_SECURE, WindowManager.LayoutParams.FLAG_SECURE);
+
         setContentView(R.layout.activity_main);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         snackView = toolbar;
@@ -118,7 +116,10 @@ public class MainActivity extends AppCompatActivity implements  ActionMode.Callb
         final ListView listView = (ListView) findViewById(R.id.listView);
         final ProgressBar progressBar = (ProgressBar) findViewById(R.id.progressBar);
 
-        entries = SettingsHelper.load(this);
+        if (DataStorage.isLoaded())
+            entries = DataStorage.load(this);
+        else
+            entries = DataStorage.init_and_load(this);
 
         adapter = new EntriesAdapter();
         adapter.setEntries(entries);
@@ -152,7 +153,7 @@ public class MainActivity extends AppCompatActivity implements  ActionMode.Callb
             }
         });
 
-        if(entries.isEmpty()){
+        if(entries == null || entries.isEmpty()){
             showNoAccount();
         }
 
@@ -218,11 +219,12 @@ public class MainActivity extends AppCompatActivity implements  ActionMode.Callb
             Entry e = new Entry(uri_data);
             e.setCurrentOTP(TOTPHelper.generate(e.getSecret()));
             entries.add(e);
-            SettingsHelper.store(this, entries);
+            DataStorage.store(this, entries);
             adapter.notifyDataSetChanged();
             Snackbar.make(snackView, R.string.msg_account_added, Snackbar.LENGTH_LONG).show();
         } catch (Exception e) {
-            Snackbar.make(snackView, R.string.msg_invalid_qr_code, Snackbar.LENGTH_LONG).setCallback(new Snackbar.Callback() {
+            Snackbar.make(snackView, R.string.msg_invalid_qr_code, Snackbar.LENGTH_LONG)
+                    .setCallback(new Snackbar.Callback() {
                 @Override
                 public void onDismissed(Snackbar snackbar, int event) {
                 super.onDismissed(snackbar, event);
@@ -408,6 +410,6 @@ public class MainActivity extends AppCompatActivity implements  ActionMode.Callb
         adapter.setCurrentSelection(null);
         adapter.notifyDataSetChanged();
 
-        SettingsHelper.store(this, entries);
+        DataStorage.store(this, entries);
     }
 }

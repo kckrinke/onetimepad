@@ -24,7 +24,7 @@ public class EntriesAdapter extends BaseAdapter {
 
     @Override
     public int getCount() {
-        return getEntries().size();
+        return entries != null ? entries.size() : 0;
     }
 
     @Override
@@ -145,7 +145,9 @@ public class EntriesAdapter extends BaseAdapter {
     }
 
     public void setShowOTP(int idx) {
-        for (int i = 0; i<getEntries().size(); i++) {
+        if (getEntries() == null)
+            return;
+        for (int i = 0; i<entries.size(); i++) {
             Entry e = getEntries().get(i);
             e.setShowOTP(false);
         }
@@ -154,8 +156,10 @@ public class EntriesAdapter extends BaseAdapter {
     }
 
     public Entry getEntryByLabel(String label) {
+        if (getEntries() == null)
+            return null;
 
-        for (int i = 0; i<getEntries().size(); i++) {
+        for (int i = 0; i<entries.size(); i++) {
             Entry e = getEntries().get(i);
             if (e.getLabel().contains(label))
                 return e;
