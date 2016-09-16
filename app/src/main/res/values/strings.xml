@@ -28,4 +28,8 @@
     <string name="manual_secret_hints">Generated Code</string>
     <string name="msg_missing_secret">Secret Code is mandatory!</string>
     <string name="msg_clipboard_cleared">OTP clipboard expired</string>
+    <string name="msg_password_prompt">Enter your password:</string>
+    <string name="msg_new_password_prompt">Enter a passphrase for this application to encrypt your private data with:</string>
+    <string name="hint_new_password">Passphrase</string>
+    <string name="hint_new_password_confirm">Confirm passphrase</string>
 </resources>
