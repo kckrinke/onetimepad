@@ -43,6 +43,13 @@ public class DataStorage {
         return _datastore;
     }
 
+    public static boolean isLoaded() {
+        if (_passphrase == null || _passphrase.isEmpty()) {
+            return false;
+        }
+        return true;
+    }
+
     public static void clearPassword() {
         _passphrase = "";
     }
@@ -174,7 +181,7 @@ public class DataStorage {
 
     public static void store(Context context, ArrayList<Entry> entries) throws RuntimeException {
 
-        if (_passphrase == null || _passphrase.isEmpty()) {
+        if (!isLoaded()) {
             throw new RuntimeException("Password is blank");
         }
 
@@ -200,7 +207,7 @@ public class DataStorage {
 
     public static ArrayList<Entry> load(Context context) throws RuntimeException {
 
-        if (_passphrase == null || _passphrase.isEmpty()) {
+        if (!isLoaded()) {
             throw new RuntimeException("Password is blank");
         }
 
