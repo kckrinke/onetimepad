@@ -7,3 +7,5 @@
 /build
 /captures
 .idea/inspectionProfiles
+app/app-debug.apk
+app/app-release.apk
