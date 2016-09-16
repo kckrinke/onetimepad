@@ -92,7 +92,7 @@ public class ApplicationTest extends ApplicationTestCase<Application> {
 
         assertEquals("HXDMVJECJJWSRB3HWIZR4IFUGFTMXBOZ", new String(new Base32().encode(entry.getSecret())));
     }
-
+/*
     public void testSettingsHelper() throws KeyStoreException, CertificateException, NoSuchAlgorithmException, IOException {
         Context context = getContext();
 
@@ -157,6 +157,6 @@ public class ApplicationTest extends ApplicationTestCase<Application> {
 
         }
     }
-
+*/
 
 }
