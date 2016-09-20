@@ -12,6 +12,7 @@
     <string name="msg_account_added">Account added</string>
     <string name="button_cancel">Cancel</string>
     <string name="button_save">Save</string>
+    <string name="button_ok">Ok</string>
     <string name="msg_confirm_delete">Are you sure you want do remove this account?</string>
     <string name="msg_account_removed">Account removed</string>
     <string name="button_add">Add</string>
