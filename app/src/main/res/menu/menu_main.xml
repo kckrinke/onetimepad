@@ -7,11 +7,6 @@
         android:title="@string/menu_manual"
         app:showAsAction="never" />
     <item
-        android:id="@+id/action_clipboard"
-        android:orderInCategory="100"
-        android:title="@string/menu_paste"
-        app:showAsAction="never" />
-    <item
         android:id="@+id/action_scan"
         android:orderInCategory="100"
         android:title="@string/menu_scan"

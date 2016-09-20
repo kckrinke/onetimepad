@@ -10,16 +10,21 @@ import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.Looper;
+import android.os.Message;
+import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.ActionMode;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -38,7 +43,13 @@ import android.widget.Toast;
 import com.google.zxing.client.android.Intents;
 import com.google.zxing.integration.android.IntentIntegrator;
 
+import org.json.JSONArray;
+
+import java.io.File;
 import java.util.ArrayList;
+
+import static com.onest8.onetimepad.Utils.readFully;
+import static com.onest8.onetimepad.Utils.writeFully;
 
 public class MainActivity extends AppCompatActivity implements  ActionMode.Callback {
     private ArrayList<Entry> entries;
@@ -116,10 +127,8 @@ public class MainActivity extends AppCompatActivity implements  ActionMode.Callb
         final ListView listView = (ListView) findViewById(R.id.listView);
         final ProgressBar progressBar = (ProgressBar) findViewById(R.id.progressBar);
 
-        if (DataStorage.isLoaded())
-            entries = DataStorage.load(this);
-        else
-            entries = DataStorage.init_and_load(this);
+        clearPassword();
+        entries = loadEntries();
 
         adapter = new EntriesAdapter();
         adapter.setEntries(entries);
@@ -203,6 +212,8 @@ public class MainActivity extends AppCompatActivity implements  ActionMode.Callb
         super.onResume();
         inForeground = true;
         handler.post(handlerTask);
+        if (!isPasswordLoaded())
+            promptForPassword(this);
     }
 
     @Override
@@ -218,8 +229,12 @@ public class MainActivity extends AppCompatActivity implements  ActionMode.Callb
         try {
             Entry e = new Entry(uri_data);
             e.setCurrentOTP(TOTPHelper.generate(e.getSecret()));
+            if (entries == null)
+                entries = new ArrayList<Entry>();
             entries.add(e);
-            DataStorage.store(this, entries);
+            saveEntries(entries);
+            entries = loadEntries();
+            adapter.setEntries(entries);
             adapter.notifyDataSetChanged();
             Snackbar.make(snackView, R.string.msg_account_added, Snackbar.LENGTH_LONG).show();
         } catch (Exception e) {
@@ -228,7 +243,7 @@ public class MainActivity extends AppCompatActivity implements  ActionMode.Callb
                 @Override
                 public void onDismissed(Snackbar snackbar, int event) {
                 super.onDismissed(snackbar, event);
-                if(entries.isEmpty()){
+                if(entries == null || entries.isEmpty()){
                     showNoAccount();
                 }
                 }
@@ -245,7 +260,7 @@ public class MainActivity extends AppCompatActivity implements  ActionMode.Callb
             return;
         }
 
-        if(entries.isEmpty()){
+        if(entries == null || entries.isEmpty()){
             showNoAccount();
         }
     }
@@ -268,15 +283,6 @@ public class MainActivity extends AppCompatActivity implements  ActionMode.Callb
             return true;
         } else if(id == R.id.action_scan){
             scanQRCode();
-        } else if (id == R.id.action_clipboard) {
-            ClipboardManager myClipboard = (ClipboardManager)getSystemService(CLIPBOARD_SERVICE);
-            ClipData abc = myClipboard.getPrimaryClip();
-            if (abc.getItemCount() >= 1) {
-                ClipData.Item clipItem = abc.getItemAt(0);
-                addNewAccount(clipItem.getText().toString());
-            } else {
-                Snackbar.make(snackView, R.string.msg_clipboard_no_paste, Snackbar.LENGTH_SHORT).show();
-            }
         } else if (id == R.id.action_manual) {
             LayoutInflater inflater = (LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE);
             final View manualEntryView = inflater.inflate(R.layout.manual_entry, null, false);
@@ -408,8 +414,209 @@ public class MainActivity extends AppCompatActivity implements  ActionMode.Callb
     @Override
     public void onDestroyActionMode(ActionMode actionMode) {
         adapter.setCurrentSelection(null);
+        saveEntries(entries);
+        entries = loadEntries();
+        adapter.setEntries(entries);
         adapter.notifyDataSetChanged();
-
-        DataStorage.store(this, entries);
     }
+
+
+    final private static String DATA_FILE = "datastore.dat";
+    final private static String WELL_KNOWN_SALT = "HimalayanSeaSalt";
+
+    private File _datastore = null;
+    private File getDatastoreFile(Context context) {
+        if (_datastore==null)
+            _datastore = new File(context.getFilesDir() + "/" + DATA_FILE);
+        return _datastore;
+    }
+
+    public ArrayList<Entry> loadEntries() {
+        Context context = this;
+        if (getDatastoreFile(context).exists()) {
+            for (int t = 1; t < 3; t++) {
+                try {
+                    if (!isPasswordLoaded())
+                        promptForPassword(context);
+                    if (isPasswordLoaded()) {
+                        AesCbcWithIntegrity.SecretKeys keys = AesCbcWithIntegrity.generateKeyFromPassword(retrievePassword(), WELL_KNOWN_SALT);
+                        byte[] cipherTextBytes = readFully(getDatastoreFile(context));
+                        AesCbcWithIntegrity.CipherTextIvMac cipherTextIvMac = new AesCbcWithIntegrity.CipherTextIvMac(new String(cipherTextBytes));
+                        String plainText = AesCbcWithIntegrity.decryptString(cipherTextIvMac, keys);
+                        JSONArray jsonData = new JSONArray(plainText);
+                        ArrayList<Entry> entries = new ArrayList<Entry>();
+                        for (int j = 0; j < jsonData.length(); j++) {
+                            entries.add(new Entry(jsonData.getJSONObject(j)));
+                        }
+                        return entries;
+                    }
+                } catch (Exception e) {
+                    Toast.makeText(context, "Attempts remaining: "+String.valueOf(3-t), Toast.LENGTH_LONG).show();
+                }
+            }
+            Toast.makeText(context, "Too many failed attempts. Relaunch and try again.", Toast.LENGTH_LONG).show();
+            ((Activity) context).finish();
+            System.exit(0);
+        }
+        return new ArrayList<Entry>();
+    }
+
+    public boolean saveEntries(ArrayList<Entry> entries) {
+        Context context = this;
+        if (!isPasswordLoaded()) {
+            if (getDatastoreFile(context).exists()) {
+                loadEntries();
+            } else {
+                for (int i = 1; i < 3; i++) {
+                    promptForNewPassword(context);
+                    if (isPasswordLoaded()) {
+                        break;
+                    }
+                }
+                if (!isPasswordLoaded()) {
+                    Toast.makeText(context, "Valid password required. Relaunch and try again.", Toast.LENGTH_LONG).show();
+                    ((Activity) context).finish();
+                    System.exit(0);
+                }
+            }
+        }
+        try {
+            JSONArray jsonData = new JSONArray();
+            for (Entry e : entries) {
+                jsonData.put(e.toJSON());
+            }
+            AesCbcWithIntegrity.SecretKeys keys = AesCbcWithIntegrity.generateKeyFromPassword(retrievePassword(), WELL_KNOWN_SALT);
+            AesCbcWithIntegrity.CipherTextIvMac cipherTextIvMac = AesCbcWithIntegrity.encrypt(jsonData.toString(), keys);
+            String ciphertextString = cipherTextIvMac.toString();
+            writeFully(getDatastoreFile(context), ciphertextString.getBytes());
+            return true;
+        } catch (Exception e) {
+            Toast.makeText(context, "An unknown error occurred. Unable to save data. OneTimePad aborting.", Toast.LENGTH_LONG).show();
+            ((Activity) context).finish();
+            System.exit(0);
+        }
+        return false;
+    }
+
+    private void cachePassword(String password) {
+        SharedPreferences prefs = getPreferences(Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = prefs.edit();
+        editor.putString("pass_word",password);
+        editor.putLong("pass_time",System.currentTimeMillis()/1000);
+        editor.apply();
+        editor.commit();
+    }
+
+    private String retrievePassword() {
+        SharedPreferences prefs = getPreferences(Context.MODE_PRIVATE);
+        String value = prefs.getString("pass_word", null);
+        return value;
+    }
+    private long retrievePasswordTime() {
+        SharedPreferences prefs = getPreferences(Context.MODE_PRIVATE);
+        long value = prefs.getLong("pass_time", 0L);
+        return value;
+    }
+
+    private void clearPassword() {
+        SharedPreferences prefs = getPreferences(Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = prefs.edit();
+        editor.remove("pass_word");
+        editor.remove("pass_time");
+        editor.apply();
+        editor.commit();
+    }
+
+    private boolean isPasswordLoaded() {
+        String pass = retrievePassword();
+        if (pass == null || pass.length() < 4) {
+            return false;
+        }
+        return true;
+    }
+
+
+    private void promptForPassword(Context context) {
+        promptForPassword(context,null);
+    }
+    private void promptForPassword(final Context context, String message) {
+        android.support.v7.app.AlertDialog.Builder builder = new android.support.v7.app.AlertDialog.Builder(context);
+        final Handler handler = new Handler() {
+            @Override
+            public void handleMessage(Message mesg) {
+                throw new RuntimeException();
+            }
+        };
+        LayoutInflater inflater = ((Activity)context).getLayoutInflater();
+        View v = inflater.inflate(R.layout.password_prompt, null);
+        final EditText passwordText = (EditText)v.findViewById(R.id.password_entry);
+        builder.setView(v);
+        if (message != null) {
+            builder.setMessage(message);
+        }
+        builder.setPositiveButton(R.string.button_ok, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int id) {
+                cachePassword(passwordText.getText().toString());
+                handler.sendMessage(handler.obtainMessage());
+            }
+        });
+        builder.setNegativeButton(R.string.button_cancel, new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int id) {
+                clearPassword();
+                dialog.cancel();
+                handler.sendMessage(handler.obtainMessage());
+            }
+        });
+        android.support.v7.app.AlertDialog dialog = builder.create();
+        dialog.show();
+        try { Looper.loop(); }
+        catch(RuntimeException e2) {}
+        return;
+    }
+
+
+    private boolean _new_password_abort = false;
+    private void promptForNewPassword(final Context context) {
+        android.support.v7.app.AlertDialog.Builder builder = new android.support.v7.app.AlertDialog.Builder(context);
+        final Handler handler = new Handler() {
+            @Override
+            public void handleMessage(Message mesg) {
+                throw new RuntimeException();
+            }
+        };
+        LayoutInflater inflater = ((Activity)context).getLayoutInflater();
+        View v = inflater.inflate(R.layout.new_password_prompt, null);
+        final EditText passwordText = (EditText)v.findViewById(R.id.password_entry);
+        final EditText confirmText = (EditText)v.findViewById(R.id.confirm_entry);
+        builder.setView(v);
+        builder.setPositiveButton(R.string.button_ok, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int id) {
+                String pass = passwordText.getText().toString();
+                String conf = confirmText.getText().toString();
+                if (pass.equals(conf) && pass.length() >= 4) {
+                    cachePassword(pass);
+                } else {
+                    clearPassword();
+                    Toast.makeText(context,"Passwords do not match or are less than 4 characters long.",Toast.LENGTH_SHORT);
+                }
+                handler.sendMessage(handler.obtainMessage());
+            }
+        });
+        builder.setNegativeButton(R.string.button_cancel, new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int id) {
+                _new_password_abort = true;
+                clearPassword();
+                dialog.cancel();
+                handler.sendMessage(handler.obtainMessage());
+            }
+        });
+        android.support.v7.app.AlertDialog dialog = builder.create();
+        dialog.show();
+        try { Looper.loop(); }
+        catch(RuntimeException e2) {}
+        return;
+    }
+
 }
