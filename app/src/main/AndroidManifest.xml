@@ -3,13 +3,14 @@
     package="com.onest8.onetimepad">
 
     <application
-        android:allowBackup="true"
+        android:allowBackup="false"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:supportsRtl="true"
         android:theme="@style/AppTheme"
-        android:name="com.onest8.onetimepad.MyApplication"
+        android:name=".MainApplication"
         >
+
         <activity
             android:name="com.onest8.onetimepad.MainActivity"
             android:label="@string/app_launcher"
@@ -26,6 +27,7 @@
                 <data android:host="totp" />
             </intent-filter>
         </activity>
+
         <activity
             android:name="com.onest8.onetimepad.CaptureActivityAnyOrientation"
             android:screenOrientation="fullSensor"
