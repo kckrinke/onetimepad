@@ -131,11 +131,12 @@ public class MainActivity extends AppCompatActivity implements  ActionMode.Callb
 
         setContentView(R.layout.activity_main);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-        snackView = toolbar;
         setSupportActionBar(toolbar);
 
         final ListView listView = (ListView) findViewById(R.id.listView);
         final ProgressBar progressBar = (ProgressBar) findViewById(R.id.progressBar);
+
+        snackView = listView;
 
         clearPassword();
         entries = loadEntries();
@@ -507,7 +508,7 @@ public class MainActivity extends AppCompatActivity implements  ActionMode.Callb
             finish();
             System.exit(0);
         } else {
-            saveEntries(entries);
+            saveEntries(new ArrayList<Entry>());
         }
         return new ArrayList<Entry>();
     }
@@ -519,15 +520,12 @@ public class MainActivity extends AppCompatActivity implements  ActionMode.Callb
             } else {
                 for (int i = 1; i < 3; i++) {
                     promptForNewPassword();
-                    if (isPasswordPromptCancelled() || isPasswordLoaded()) {
+                    if (isPasswordLoaded()) {
                         break;
                     }
                 }
-                if (isPasswordPromptCancelled() || !isPasswordLoaded()) {
-//                    Toast.makeText(this, getStringFormat(R.string.msg_try_again_invalid), Toast.LENGTH_LONG).show();
-//                    finish();
-//                    System.exit(0);
-                    Toast.makeText(this, R.string.msg_unable_save, Toast.LENGTH_LONG).show();
+                if (isPasswordLoaded()==false) {
+                    popLongToast(R.string.msg_unable_save);
                     return false;
                 }
             }
@@ -555,7 +553,6 @@ public class MainActivity extends AppCompatActivity implements  ActionMode.Callb
         SharedPreferences.Editor editor = prefs.edit();
         editor.putString("pass_word",password);
         editor.putLong("pass_time",System.currentTimeMillis()/1000);
-        editor.apply();
         editor.commit();
     }
 
