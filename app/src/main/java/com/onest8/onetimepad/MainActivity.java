@@ -480,6 +480,11 @@ public class MainActivity extends AppCompatActivity implements  ActionMode.Callb
                         else
                             promptForPassword(getStringFormat(R.string.msg_remain_tries, 4 - t));
                     }
+                    if (isPasswordPromptCancelled()) {
+                        Toast.makeText(getApplicationContext(),R.string.msg_cancel_exit,Toast.LENGTH_SHORT);
+                        finish();
+                        System.exit(0);
+                    }
                     if (isPasswordLoaded()) {
                         AesCbcWithIntegrity.SecretKeys keys = AesCbcWithIntegrity.generateKeyFromPassword(retrievePassword(), WELL_KNOWN_SALT);
                         byte[] cipherTextBytes = readFully(getDatastoreFile());
@@ -512,14 +517,16 @@ public class MainActivity extends AppCompatActivity implements  ActionMode.Callb
             } else {
                 for (int i = 1; i < 3; i++) {
                     promptForNewPassword();
-                    if (isPasswordLoaded()) {
+                    if (isPasswordPromptCancelled() || isPasswordLoaded()) {
                         break;
                     }
                 }
-                if (!isPasswordLoaded()) {
-                    Toast.makeText(this, getStringFormat(R.string.msg_try_again_invalid), Toast.LENGTH_LONG).show();
-                    finish();
-                    System.exit(0);
+                if (isPasswordPromptCancelled() || !isPasswordLoaded()) {
+//                    Toast.makeText(this, getStringFormat(R.string.msg_try_again_invalid), Toast.LENGTH_LONG).show();
+//                    finish();
+//                    System.exit(0);
+                    Toast.makeText(this, R.string.msg_unable_save, Toast.LENGTH_LONG).show();
+                    return false;
                 }
             }
         }
@@ -578,11 +585,16 @@ public class MainActivity extends AppCompatActivity implements  ActionMode.Callb
         return true;
     }
 
+    private boolean isPasswordPromptCancelled() {
+        return _pass_prompt_cancelled;
+    }
 
+    private boolean _pass_prompt_cancelled = false;
     private void promptForPassword() {
         promptForPassword(null);
     }
     private void promptForPassword(String message) {
+        _pass_prompt_cancelled = false;
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         final Handler handler = new Handler() {
             @Override
@@ -606,6 +618,7 @@ public class MainActivity extends AppCompatActivity implements  ActionMode.Callb
         });
         builder.setNegativeButton(R.string.button_cancel, new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int id) {
+                _pass_prompt_cancelled = true;
                 clearPassword();
                 dialog.cancel();
                 handler.sendMessage(handler.obtainMessage());

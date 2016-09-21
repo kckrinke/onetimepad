@@ -38,4 +38,6 @@
     <string name="msg_invalid_passwords">Passwords do not match or are less than 4 characters long.</string>
     <string name="msg_change_existing_pass">To change the password you will be first prompted for the existing password, once that is unlocked, you will be prompted for the new password.</string>
     <string name="msg_select_entry_first">Select the entry first, then tap to copy the one time pad.</string>
+    <string name="msg_cancel_exit">OneTimePad is exiting now.</string>
+    <string name="msg_unable_save">Unable to save entries due to missing or invalid password.</string>
 </resources>
