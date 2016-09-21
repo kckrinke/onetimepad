@@ -64,6 +64,17 @@ public class MainActivity extends AppCompatActivity implements  ActionMode.Callb
 
     private static final int PERMISSIONS_REQUEST_CAMERA = 42;
 
+    private String getStringFormat(int sid,Object...arguments) {
+        try {
+            String strMeatFormat = getResources().getString(sid);
+            return String.format(strMeatFormat, arguments);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+
     private void doScanQRCode(){
         new IntentIntegrator(MainActivity.this)
                 .setCaptureActivity(CaptureActivityAnyOrientation.class)
