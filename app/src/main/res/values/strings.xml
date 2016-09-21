@@ -33,4 +33,9 @@
     <string name="msg_new_password_prompt">Enter a passphrase for this application to encrypt your private data with:</string>
     <string name="hint_new_password">Passphrase</string>
     <string name="hint_new_password_confirm">Confirm passphrase</string>
+    <string name="msg_remain_tries">%1$d attempts remaining</string>
+    <string name="msg_try_again_failure">Too many failed attempts. Relaunch and try again.</string>
+    <string name="msg_try_again_invalid">Valid password required. Relaunch and try again.</string>
+    <string name="msg_try_again_unknown">An unknown error occurred. Unable to save data. OneTimePad aborting.</string>
+    <string name="msg_invalid_passwords">Passwords do not match or are less than 4 characters long.</string>
 </resources>
