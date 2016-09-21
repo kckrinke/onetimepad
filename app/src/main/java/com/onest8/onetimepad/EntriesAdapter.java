@@ -76,13 +76,17 @@ public class EntriesAdapter extends BaseAdapter {
             tt2.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
-                    Entry entry = getItem(MainActivity.currentEntryIndex);
-                    ClipData clip = ClipData.newPlainText(entry.getLabel(), entry.getCurrentOTP());
-                    Context context = view.getContext();
-                    ClipboardManager clipboard = (ClipboardManager) (context.getSystemService(Context.CLIPBOARD_SERVICE));
-                    clipboard.setPrimaryClip(clip);
-                    Snackbar.make(convertView, R.string.msg_clipboard_copied, Snackbar.LENGTH_SHORT).show();
-                    MainActivity.clipboardExpires = true;
+                    if(MainActivity.currentEntryIndex != -1) {
+                        Entry entry = getItem(MainActivity.currentEntryIndex);
+                        ClipData clip = ClipData.newPlainText(entry.getLabel(), entry.getCurrentOTP());
+                        Context context = view.getContext();
+                        ClipboardManager clipboard = (ClipboardManager) (context.getSystemService(Context.CLIPBOARD_SERVICE));
+                        clipboard.setPrimaryClip(clip);
+                        Snackbar.make(convertView, R.string.msg_clipboard_copied, Snackbar.LENGTH_SHORT).show();
+                        MainActivity.clipboardExpires = true;
+                    } else {
+                        Snackbar.make(convertView, R.string.msg_select_entry_first, Snackbar.LENGTH_SHORT).show();
+                    }
 
                 }
             });

@@ -38,4 +38,5 @@
     <string name="msg_try_again_invalid">Valid password required. Relaunch and try again.</string>
     <string name="msg_try_again_unknown">An unknown error occurred. Unable to save data. OneTimePad aborting.</string>
     <string name="msg_invalid_passwords">Passwords do not match or are less than 4 characters long.</string>
+    <string name="msg_select_entry_first">Select the entry first, then tap to copy the one time pad.</string>
 </resources>
