@@ -17,14 +17,12 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
-import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.view.ActionMode;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -221,7 +219,7 @@ public class MainActivity extends AppCompatActivity implements  ActionMode.Callb
         inForeground = true;
         handler.post(handlerTask);
         if (!isPasswordLoaded())
-            promptForPassword(this);
+            promptForPassword();
     }
 
     @Override
@@ -435,22 +433,25 @@ public class MainActivity extends AppCompatActivity implements  ActionMode.Callb
     final private static String WELL_KNOWN_SALT = "HimalayanSeaSalt";
 
     private File _datastore = null;
-    private File getDatastoreFile(Context context) {
+    private File getDatastoreFile() {
         if (_datastore==null)
-            _datastore = new File(context.getFilesDir() + "/" + DATA_FILE);
+            _datastore = new File(getFilesDir() + "/" + DATA_FILE);
         return _datastore;
     }
 
     public ArrayList<Entry> loadEntries() {
-        Context context = this;
-        if (getDatastoreFile(context).exists()) {
-            for (int t = 1; t < 3; t++) {
+        if (getDatastoreFile().exists()) {
+            for (int t = 1; t <= 3; t++) {
                 try {
-                    if (!isPasswordLoaded())
-                        promptForPassword(context);
+                    if (!isPasswordLoaded()) {
+                        if (t == 1)
+                            promptForPassword();
+                        else
+                            promptForPassword(getStringFormat(R.string.msg_remain_tries, 4 - t));
+                    }
                     if (isPasswordLoaded()) {
                         AesCbcWithIntegrity.SecretKeys keys = AesCbcWithIntegrity.generateKeyFromPassword(retrievePassword(), WELL_KNOWN_SALT);
-                        byte[] cipherTextBytes = readFully(getDatastoreFile(context));
+                        byte[] cipherTextBytes = readFully(getDatastoreFile());
                         AesCbcWithIntegrity.CipherTextIvMac cipherTextIvMac = new AesCbcWithIntegrity.CipherTextIvMac(new String(cipherTextBytes));
                         String plainText = AesCbcWithIntegrity.decryptString(cipherTextIvMac, keys);
                         JSONArray jsonData = new JSONArray(plainText);
@@ -461,31 +462,32 @@ public class MainActivity extends AppCompatActivity implements  ActionMode.Callb
                         return entries;
                     }
                 } catch (Exception e) {
-                    Toast.makeText(context, "Attempts remaining: "+String.valueOf(3-t), Toast.LENGTH_LONG).show();
+                    clearPassword();
                 }
             }
-            Toast.makeText(context, "Too many failed attempts. Relaunch and try again.", Toast.LENGTH_LONG).show();
-            ((Activity) context).finish();
+            Toast.makeText(this, getStringFormat(R.string.msg_try_again_failure), Toast.LENGTH_LONG).show();
+            finish();
             System.exit(0);
+        } else {
+            saveEntries(entries);
         }
         return new ArrayList<Entry>();
     }
 
     public boolean saveEntries(ArrayList<Entry> entries) {
-        Context context = this;
         if (!isPasswordLoaded()) {
-            if (getDatastoreFile(context).exists()) {
+            if (getDatastoreFile().exists()) {
                 loadEntries();
             } else {
                 for (int i = 1; i < 3; i++) {
-                    promptForNewPassword(context);
+                    promptForNewPassword();
                     if (isPasswordLoaded()) {
                         break;
                     }
                 }
                 if (!isPasswordLoaded()) {
-                    Toast.makeText(context, "Valid password required. Relaunch and try again.", Toast.LENGTH_LONG).show();
-                    ((Activity) context).finish();
+                    Toast.makeText(this, getStringFormat(R.string.msg_try_again_invalid), Toast.LENGTH_LONG).show();
+                    finish();
                     System.exit(0);
                 }
             }
@@ -498,11 +500,11 @@ public class MainActivity extends AppCompatActivity implements  ActionMode.Callb
             AesCbcWithIntegrity.SecretKeys keys = AesCbcWithIntegrity.generateKeyFromPassword(retrievePassword(), WELL_KNOWN_SALT);
             AesCbcWithIntegrity.CipherTextIvMac cipherTextIvMac = AesCbcWithIntegrity.encrypt(jsonData.toString(), keys);
             String ciphertextString = cipherTextIvMac.toString();
-            writeFully(getDatastoreFile(context), ciphertextString.getBytes());
+            writeFully(getDatastoreFile(), ciphertextString.getBytes());
             return true;
         } catch (Exception e) {
-            Toast.makeText(context, "An unknown error occurred. Unable to save data. OneTimePad aborting.", Toast.LENGTH_LONG).show();
-            ((Activity) context).finish();
+            Toast.makeText(this, getStringFormat(R.string.msg_try_again_unknown), Toast.LENGTH_LONG).show();
+            finish();
             System.exit(0);
         }
         return false;
@@ -546,18 +548,18 @@ public class MainActivity extends AppCompatActivity implements  ActionMode.Callb
     }
 
 
-    private void promptForPassword(Context context) {
-        promptForPassword(context,null);
+    private void promptForPassword() {
+        promptForPassword(null);
     }
-    private void promptForPassword(final Context context, String message) {
-        android.support.v7.app.AlertDialog.Builder builder = new android.support.v7.app.AlertDialog.Builder(context);
+    private void promptForPassword(String message) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
         final Handler handler = new Handler() {
             @Override
             public void handleMessage(Message mesg) {
                 throw new RuntimeException();
             }
         };
-        LayoutInflater inflater = ((Activity)context).getLayoutInflater();
+        LayoutInflater inflater = getLayoutInflater();
         View v = inflater.inflate(R.layout.password_prompt, null);
         final EditText passwordText = (EditText)v.findViewById(R.id.password_entry);
         builder.setView(v);
@@ -578,7 +580,9 @@ public class MainActivity extends AppCompatActivity implements  ActionMode.Callb
                 handler.sendMessage(handler.obtainMessage());
             }
         });
-        android.support.v7.app.AlertDialog dialog = builder.create();
+        AlertDialog dialog = builder.create();
+        dialog.setCancelable(false);
+        dialog.setTitle(getStringFormat(R.string.app_name));
         dialog.show();
         try { Looper.loop(); }
         catch(RuntimeException e2) {}
@@ -586,16 +590,16 @@ public class MainActivity extends AppCompatActivity implements  ActionMode.Callb
     }
 
 
-    private boolean _new_password_abort = false;
-    private void promptForNewPassword(final Context context) {
-        android.support.v7.app.AlertDialog.Builder builder = new android.support.v7.app.AlertDialog.Builder(context);
+    private void promptForNewPassword() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
         final Handler handler = new Handler() {
             @Override
             public void handleMessage(Message mesg) {
                 throw new RuntimeException();
             }
         };
-        LayoutInflater inflater = ((Activity)context).getLayoutInflater();
+        final Context context = this;
+        LayoutInflater inflater = getLayoutInflater();
         View v = inflater.inflate(R.layout.new_password_prompt, null);
         final EditText passwordText = (EditText)v.findViewById(R.id.password_entry);
         final EditText confirmText = (EditText)v.findViewById(R.id.confirm_entry);
@@ -609,20 +613,21 @@ public class MainActivity extends AppCompatActivity implements  ActionMode.Callb
                     cachePassword(pass);
                 } else {
                     clearPassword();
-                    Toast.makeText(context,"Passwords do not match or are less than 4 characters long.",Toast.LENGTH_SHORT);
+                    Toast.makeText(context,getStringFormat(R.string.msg_invalid_passwords),Toast.LENGTH_SHORT);
                 }
                 handler.sendMessage(handler.obtainMessage());
             }
         });
         builder.setNegativeButton(R.string.button_cancel, new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int id) {
-                _new_password_abort = true;
                 clearPassword();
                 dialog.cancel();
                 handler.sendMessage(handler.obtainMessage());
             }
         });
-        android.support.v7.app.AlertDialog dialog = builder.create();
+        AlertDialog dialog = builder.create();
+        dialog.setCancelable(false);
+        dialog.setTitle(getStringFormat(R.string.app_name));
         dialog.show();
         try { Looper.loop(); }
         catch(RuntimeException e2) {}
