@@ -49,12 +49,12 @@ public class EntriesAdapter extends BaseAdapter {
         }
 
         if (MainActivity.currentEntryIndex == position) {
-            v.setBackgroundColor(Color.LTGRAY);
+            v.setBackgroundColor(Color.YELLOW);
         } else {
             v.setBackgroundColor(Color.TRANSPARENT);
         }
         if (getEntries().get(position) == getCurrentSelection()) {
-            v.setBackgroundColor(Color.DKGRAY);
+            v.setBackgroundColor(Color.LTGRAY);
         }
 
         final TextView tt1 = (TextView) v.findViewById(R.id.textViewLabel);
