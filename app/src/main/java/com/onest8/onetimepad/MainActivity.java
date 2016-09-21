@@ -289,8 +289,39 @@ public class MainActivity extends AppCompatActivity implements  ActionMode.Callb
                 new AlertDialog.Builder(this).setView(view).show();
             } catch (Exception e) {}
             return true;
-        } else if(id == R.id.action_scan){
+        } else if(id == R.id.action_scan) {
             scanQRCode();
+        } else if(id == R.id.action_change_pass) {
+            clearPassword();
+            new AlertDialog.Builder(MainActivity.this)
+                    .setTitle(R.string.app_name)
+                    .setMessage(R.string.msg_change_existing_pass)
+                    .setCancelable(false)
+                    .setPositiveButton(R.string.button_ok, new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            ArrayList<Entry> entries_cached = loadEntries();
+                            if (!isPasswordLoaded()) {
+                                new AlertDialog.Builder(MainActivity.this)
+                                        .setTitle(R.string.app_name)
+                                        .setMessage(R.string.msg_try_again_failure)
+                                        .setCancelable(false)
+                                        .setPositiveButton(R.string.button_ok, new DialogInterface.OnClickListener() {
+                                            @Override
+                                            public void onClick(DialogInterface dialog, int which) {
+                                                MainActivity.this.finish();
+                                                System.exit(0);
+                                            }
+                                        })
+                                        .show();
+                            }
+                            getDatastoreFile().delete();
+                            clearPassword();
+                            saveEntries(entries_cached);
+                        }
+                    })
+                    .show();
+
         } else if (id == R.id.action_manual) {
             LayoutInflater inflater = (LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE);
             final View manualEntryView = inflater.inflate(R.layout.manual_entry, null, false);
