@@ -11,6 +11,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
@@ -23,6 +24,7 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.ActionMode;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -196,7 +198,7 @@ public class MainActivity extends AppCompatActivity implements  ActionMode.Callb
                         if (inForeground)
                             Snackbar.make(snackView, R.string.msg_clipboard_cleared, Snackbar.LENGTH_SHORT).show();
                         else
-                            Toast.makeText(getApplicationContext(),R.string.msg_clipboard_cleared,Toast.LENGTH_SHORT).show();
+                            popShortToast(R.string.msg_clipboard_cleared);
                         clipboardExpires = false;
                     }
                 }
@@ -481,7 +483,7 @@ public class MainActivity extends AppCompatActivity implements  ActionMode.Callb
                             promptForPassword(getStringFormat(R.string.msg_remain_tries, 4 - t));
                     }
                     if (isPasswordPromptCancelled()) {
-                        Toast.makeText(getApplicationContext(),R.string.msg_cancel_exit,Toast.LENGTH_SHORT);
+                        popShortToast(R.string.msg_cancel_exit);
                         finish();
                         System.exit(0);
                     }
@@ -501,7 +503,7 @@ public class MainActivity extends AppCompatActivity implements  ActionMode.Callb
                     clearPassword();
                 }
             }
-            Toast.makeText(this, getStringFormat(R.string.msg_try_again_failure), Toast.LENGTH_LONG).show();
+            popLongToast(R.string.msg_try_again_failure);
             finish();
             System.exit(0);
         } else {
@@ -541,7 +543,7 @@ public class MainActivity extends AppCompatActivity implements  ActionMode.Callb
             writeFully(getDatastoreFile(), ciphertextString.getBytes());
             return true;
         } catch (Exception e) {
-            Toast.makeText(this, getStringFormat(R.string.msg_try_again_unknown), Toast.LENGTH_LONG).show();
+            popLongToast(R.string.msg_try_again_unknown,e.getMessage());
             finish();
             System.exit(0);
         }
@@ -573,15 +575,17 @@ public class MainActivity extends AppCompatActivity implements  ActionMode.Callb
         SharedPreferences.Editor editor = prefs.edit();
         editor.remove("pass_word");
         editor.remove("pass_time");
-        editor.apply();
         editor.commit();
+        popLogD("password cache cleared");
     }
 
     private boolean isPasswordLoaded() {
         String pass = retrievePassword();
         if (pass == null || pass.length() < 4) {
+            popLogD("isPasswordLoaded? NO");
             return false;
         }
+        popLogD("isPasswordLoaded? YES");
         return true;
     }
 
@@ -657,7 +661,7 @@ public class MainActivity extends AppCompatActivity implements  ActionMode.Callb
                     cachePassword(pass);
                 } else {
                     clearPassword();
-                    Toast.makeText(context,getStringFormat(R.string.msg_invalid_passwords),Toast.LENGTH_SHORT);
+                    popShortToast(R.string.msg_invalid_passwords);
                 }
                 handler.sendMessage(handler.obtainMessage());
             }
@@ -676,6 +680,26 @@ public class MainActivity extends AppCompatActivity implements  ActionMode.Callb
         try { Looper.loop(); }
         catch(RuntimeException e2) {}
         return;
+    }
+
+    public void popLogD(String message) {
+        boolean isDebuggable =  ( 0 != ( getApplicationInfo().flags & ApplicationInfo.FLAG_DEBUGGABLE ) );
+        if (isDebuggable)
+            Log.d("OneTimePad",message);
+    }
+
+    public void popShortToast(int sid, Object...args) {
+        popToast(Toast.LENGTH_SHORT,sid,args);
+    }
+    public void popLongToast(int sid, Object...args) {
+        popToast(Toast.LENGTH_LONG,sid,args);
+    }
+    public void popToast(int duration, int sid, Object...args) {
+        popToast(duration,getStringFormat(sid,args));
+    }
+    public void popToast(int duration, String msg) {
+        Toast.makeText(getApplicationContext(),msg,duration).show();
+        popLogD("notify: "+msg);
     }
 
 }

@@ -34,7 +34,7 @@
     <string name="msg_remain_tries">%1$d attempts remaining</string>
     <string name="msg_try_again_failure">Too many failed attempts. Relaunch and try again.</string>
     <string name="msg_try_again_invalid">Valid password required. Relaunch and try again.</string>
-    <string name="msg_try_again_unknown">An unknown error occurred. Unable to save data. OneTimePad aborting.</string>
+    <string name="msg_try_again_unknown">OneTimePad is exiting due to: %1$s</string>
     <string name="msg_invalid_passwords">Passwords do not match or are less than 4 characters long.</string>
     <string name="msg_change_existing_pass">To change the password you will be first prompted for the existing password, once that is unlocked, you will be prompted for the new password.</string>
     <string name="msg_select_entry_first">Select the entry first, then tap to copy the one time pad.</string>
