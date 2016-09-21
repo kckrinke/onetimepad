@@ -356,7 +356,7 @@ public class MainActivity extends AppCompatActivity implements  ActionMode.Callb
 
         if (id == R.id.action_delete) {
             AlertDialog.Builder alert = new AlertDialog.Builder(this);
-            alert.setTitle(getString(R.string.alert_remove) + adapter.getCurrentSelection().getLabel() + "?");
+            alert.setTitle(getStringFormat(R.string.alert_remove, adapter.getCurrentSelection().getLabel()));
             alert.setMessage(R.string.msg_confirm_delete);
 
             alert.setPositiveButton(R.string.button_remove, new DialogInterface.OnClickListener() {

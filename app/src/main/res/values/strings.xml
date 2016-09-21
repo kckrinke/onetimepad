@@ -18,12 +18,12 @@
     <string name="button_add">Add</string>
     <string name="button_remove">Remove</string>
     <string name="alert_rename">Rename</string>
-    <string name="alert_remove">"Remove "</string>
+    <string name="alert_remove">Remove "%1$s"?</string>
     <string name="msg_camera_permission">Camera permission not granted</string>
     <string name="msg_clipboard_copied">One time pad copied to clipboard</string>
     <string name="msg_clipboard_updated">One time pad updated clipboard</string>
     <string name="msg_clipboard_no_paste">No valid URI found</string>
-    <string name="manual_issuer_label">Issuer Label:</string>
+    <string name="manual_issuer_label">Issuer Label</string>
     <string name="manual_secret_label">Secret Code</string>
     <string name="manual_issuer_hints">Account Name</string>
     <string name="manual_secret_hints">Generated Code</string>
