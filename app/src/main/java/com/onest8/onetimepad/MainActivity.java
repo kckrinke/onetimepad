@@ -277,9 +277,11 @@ public class MainActivity extends AppCompatActivity implements  ActionMode.Callb
         int id = item.getItemId();
 
         if(id == R.id.action_about){
-            WebView view = (WebView) LayoutInflater.from(this).inflate(R.layout.dialog_about, null);
-            view.loadUrl("file:///android_res/raw/about.html");
-            new AlertDialog.Builder(this).setView(view).show();
+            try {
+                WebView view = new WebView(this);
+                view.loadUrl("file:///android_res/raw/about.html");
+                new AlertDialog.Builder(this).setView(view).show();
+            } catch (Exception e) {}
             return true;
         } else if(id == R.id.action_scan){
             scanQRCode();
