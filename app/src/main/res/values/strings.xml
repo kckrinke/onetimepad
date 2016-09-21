@@ -23,10 +23,8 @@
     <string name="msg_clipboard_copied">One time pad copied to clipboard</string>
     <string name="msg_clipboard_updated">One time pad updated clipboard</string>
     <string name="msg_clipboard_no_paste">No valid URI found</string>
-    <string name="manual_issuer_label">Issuer Label</string>
-    <string name="manual_secret_label">Secret Code</string>
-    <string name="manual_issuer_hints">Account Name</string>
-    <string name="manual_secret_hints">Generated Code</string>
+    <string name="manual_issuer_hints">Issuer Label</string>
+    <string name="manual_secret_hints">Secret Code</string>
     <string name="msg_missing_secret">Secret Code is mandatory!</string>
     <string name="msg_clipboard_cleared">OTP clipboard expired</string>
     <string name="msg_password_prompt">Enter your password:</string>

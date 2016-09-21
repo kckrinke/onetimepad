@@ -2,50 +2,26 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent" android:layout_height="match_parent">
 
-    <TextView
+    <EditText
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="@string/manual_issuer_label"
-        android:id="@+id/issuerLabelText"
-        android:textSize="22sp"
-        android:layout_alignParentTop="true"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true"
-        android:layout_margin="16dp" />
+        android:id="@+id/secretCodeEntry"
+        android:inputType="text"
+        android:hint="@string/manual_secret_hints"
+        android:layout_below="@+id/issuerLabelEntry"
+        android:layout_marginTop="52dp"
+        android:layout_alignStart="@+id/issuerLabelEntry"
+        android:layout_alignEnd="@+id/issuerLabelEntry" />
 
     <EditText
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:id="@+id/issuerLabelEntry"
         android:inputType="text"
-        android:layout_below="@+id/issuerLabelText"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true"
-        android:editable="true"
         android:hint="@string/manual_issuer_hints"
-        android:layout_margin="16dp" />
-
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="@string/manual_secret_label"
-        android:id="@+id/secretCodeText"
-        android:textSize="22sp"
-        android:layout_below="@+id/issuerLabelEntry"
-        android:layout_alignStart="@+id/issuerLabelEntry"
-        android:layout_margin="16dp"
-        android:layout_alignParentStart="true"
-        android:layout_alignLeft="@+id/issuerLabelEntry" />
-
-    <EditText
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:id="@+id/secretCodeEntry"
-        android:inputType="text"
-        android:editable="true"
-        android:hint="@string/manual_secret_hints"
-        android:layout_below="@+id/secretCodeText"
-        android:layout_alignLeft="@+id/secretCodeText"
-        android:layout_alignStart="@+id/secretCodeText" />
+        android:layout_marginLeft="16dp"
+        android:layout_marginRight="16dp"
+        android:layout_marginTop="48dp"
+        android:layout_alignParentTop="true" />
 
 </RelativeLayout>
