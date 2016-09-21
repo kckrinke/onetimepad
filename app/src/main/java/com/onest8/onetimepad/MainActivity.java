@@ -56,7 +56,6 @@ public class MainActivity extends AppCompatActivity implements  ActionMode.Callb
     private EntriesAdapter adapter;
     private View snackView;
     public static int currentEntryIndex = -1;
-    public static View currentEntryView = null;
     public static boolean clipboardExpires = false;
     public static boolean inForeground = true;
 
@@ -153,10 +152,8 @@ public class MainActivity extends AppCompatActivity implements  ActionMode.Callb
                     ClipboardManager clipboard = (ClipboardManager) getSystemService(CLIPBOARD_SERVICE);
                     clipboard.setPrimaryClip(clip);
                     currentEntryIndex = -1;
-                    currentEntryView = null;
                     return;
                 }
-                currentEntryView = view;
                 currentEntryIndex = i;
                 adapter.setShowOTP(i);
             }

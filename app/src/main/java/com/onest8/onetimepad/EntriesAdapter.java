@@ -38,7 +38,7 @@ public class EntriesAdapter extends BaseAdapter {
     }
 
     @Override
-    public View getView(final int position, View convertView, final ViewGroup parent) {
+    public View getView(final int position, final View convertView, final ViewGroup parent) {
 
         View v = convertView;
 
@@ -81,7 +81,7 @@ public class EntriesAdapter extends BaseAdapter {
                     Context context = view.getContext();
                     ClipboardManager clipboard = (ClipboardManager) (context.getSystemService(Context.CLIPBOARD_SERVICE));
                     clipboard.setPrimaryClip(clip);
-                    Snackbar.make(MainActivity.currentEntryView, R.string.msg_clipboard_copied, Snackbar.LENGTH_SHORT).show();
+                    Snackbar.make(convertView, R.string.msg_clipboard_copied, Snackbar.LENGTH_SHORT).show();
                     MainActivity.clipboardExpires = true;
 
                 }
