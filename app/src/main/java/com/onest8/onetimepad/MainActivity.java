@@ -518,8 +518,9 @@ public class MainActivity extends AppCompatActivity implements  ActionMode.Callb
             if (getDatastoreFile().exists()) {
                 loadEntries();
             } else {
-                for (int i = 1; i < 3; i++) {
-                    promptForNewPassword();
+                for (int i = 1; i < 4; i++) {
+                    if (i==1) promptForNewPassword();
+                    else promptForNewPassword(getStringFormat(R.string.msg_remain_tries,(4-i)));
                     if (isPasswordLoaded()) {
                         break;
                     }
@@ -634,8 +635,10 @@ public class MainActivity extends AppCompatActivity implements  ActionMode.Callb
         return;
     }
 
-
     private void promptForNewPassword() {
+        promptForNewPassword(null);
+    }
+    private void promptForNewPassword(String message) {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         final Handler handler = new Handler() {
             @Override
@@ -649,6 +652,9 @@ public class MainActivity extends AppCompatActivity implements  ActionMode.Callb
         final EditText passwordText = (EditText)v.findViewById(R.id.password_entry);
         final EditText confirmText = (EditText)v.findViewById(R.id.confirm_entry);
         builder.setView(v);
+        if (message != null) {
+            builder.setMessage(message);
+        }
         builder.setPositiveButton(R.string.button_ok, new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int id) {
