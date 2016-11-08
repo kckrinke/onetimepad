@@ -2,6 +2,7 @@
     <string name="app_name">OneTimePad</string>
     <string name="app_launcher">OneTimePad</string>
     <string name="no_accounts">No accounts found, use the menu to add one</string>
+    <string name="menu_qrcode">Show QR code</string>
     <string name="menu_delete">Delete</string>
     <string name="menu_edit">Edit</string>
     <string name="menu_manual">Manual Entry</string>
