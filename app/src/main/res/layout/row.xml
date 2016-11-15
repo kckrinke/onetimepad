@@ -24,7 +24,7 @@
         <TextView
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:textSize="28sp"
+            android:textSize="24sp"
             android:textStyle="bold"
             android:id="@+id/textViewOTP"
             android:typeface="monospace"
