@@ -13,6 +13,8 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
+import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
@@ -36,11 +38,16 @@ import android.view.animation.LinearInterpolator;
 import android.webkit.WebView;
 import android.widget.AdapterView;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 
+import com.google.zxing.BarcodeFormat;
+import com.google.zxing.MultiFormatWriter;
+import com.google.zxing.WriterException;
 import com.google.zxing.client.android.Intents;
+import com.google.zxing.common.BitMatrix;
 import com.google.zxing.integration.android.IntentIntegrator;
 
 import org.json.JSONArray;
@@ -446,6 +453,30 @@ public class MainActivity extends AppCompatActivity implements  ActionMode.Callb
             });
 
             alert.show();
+
+            return true;
+        } else if (id == R.id.action_qrcode) {
+            AlertDialog.Builder alert = new AlertDialog.Builder(this);
+
+            try {
+                BitMatrix bitMatrix = new MultiFormatWriter().encode("otpauth://totp/" + adapter.getCurrentSelection().getLabel() + "?secret=" + adapter.getCurrentSelection().getSecret(), BarcodeFormat.QR_CODE, 400, 400, null);
+                int height = bitMatrix.getHeight();
+                int width = bitMatrix.getWidth();
+                Bitmap bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.RGB_565);
+                for (int x = 0; x < width; x++) {
+                    for (int y = 0; y < height; y++) {
+                        bitmap.setPixel(x, y, bitMatrix.get(x, y) ? Color.BLACK : Color.WHITE);
+                    }
+                }
+                ImageView image = new ImageView(getApplicationContext());
+                image.setImageBitmap(bitmap);
+
+                alert.setView(image);
+
+                alert.show();
+            } catch (WriterException e) {
+                Log.e("OneTimePad", e.getMessage());
+            }
 
             return true;
         }
