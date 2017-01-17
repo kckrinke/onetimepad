@@ -14,6 +14,7 @@
         <activity
             android:name="com.onest8.onetimepad.MainActivity"
             android:label="@string/app_launcher"
+            android:configChanges="orientation|screenSize"
             android:theme="@style/AppTheme.NoActionBar">
             <intent-filter android:autoVerify="true">
                 <action android:name="android.intent.action.MAIN" />
@@ -30,6 +31,7 @@
 
         <activity
             android:name="com.onest8.onetimepad.CaptureActivityAnyOrientation"
+            android:configChanges="orientation|screenSize"
             android:screenOrientation="fullSensor"
             android:stateNotNeeded="true"
             android:theme="@style/zxing_CaptureTheme"
