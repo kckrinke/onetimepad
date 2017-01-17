@@ -50,6 +50,7 @@ import com.google.zxing.client.android.Intents;
 import com.google.zxing.common.BitMatrix;
 import com.google.zxing.integration.android.IntentIntegrator;
 
+import org.apache.commons.codec.binary.Base32;
 import org.json.JSONArray;
 
 import java.io.File;
@@ -459,7 +460,15 @@ public class MainActivity extends AppCompatActivity implements  ActionMode.Callb
             AlertDialog.Builder alert = new AlertDialog.Builder(this);
 
             try {
-                BitMatrix bitMatrix = new MultiFormatWriter().encode("otpauth://totp/" + adapter.getCurrentSelection().getLabel() + "?secret=" + adapter.getCurrentSelection().getSecret(), BarcodeFormat.QR_CODE, 400, 400, null);
+                BitMatrix bitMatrix = new MultiFormatWriter()
+                        .encode("otpauth://totp/"
+                                + adapter.getCurrentSelection().getLabel()
+                                + "?secret=" + new String(new Base32().encode(adapter.getCurrentSelection().getSecret())),
+                                BarcodeFormat.QR_CODE,
+                                400,
+                                400,
+                                null
+                        );
                 int height = bitMatrix.getHeight();
                 int width = bitMatrix.getWidth();
                 Bitmap bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.RGB_565);
