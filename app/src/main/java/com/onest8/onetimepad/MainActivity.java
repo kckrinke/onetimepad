@@ -457,13 +457,15 @@ public class MainActivity extends AppCompatActivity implements  ActionMode.Callb
 
             return true;
         } else if (id == R.id.action_qrcode) {
+            String b32code = new String(new Base32().encode(adapter.getCurrentSelection().getSecret()));
             AlertDialog.Builder alert = new AlertDialog.Builder(this);
-
+            alert.setTitle(adapter.getCurrentSelection().getLabel());
+            alert.setMessage(b32code);
             try {
                 BitMatrix bitMatrix = new MultiFormatWriter()
                         .encode("otpauth://totp/"
                                 + adapter.getCurrentSelection().getLabel()
-                                + "?secret=" + new String(new Base32().encode(adapter.getCurrentSelection().getSecret())),
+                                + "?secret=" + b32code,
                                 BarcodeFormat.QR_CODE,
                                 400,
                                 400,
