@@ -671,6 +671,12 @@ public class MainActivity extends AppCompatActivity implements  ActionMode.Callb
         AlertDialog dialog = builder.create();
         dialog.setCancelable(false);
         dialog.setTitle(getStringFormat(R.string.app_name));
+
+        // https://turbomanage.wordpress.com/2012/05/02/show-soft-keyboard-automatically-when-edittext-receives-focus/
+        // Request focus and show soft keyboard automatically
+        passwordText.requestFocus();
+        dialog.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE);
+
         dialog.show();
         try { Looper.loop(); }
         catch(RuntimeException e2) {}
