@@ -13,14 +13,24 @@
     tools:context="com.onest8.onetimepad.MainActivity"
     tools:showIn="@layout/activity_main">
 
+    <EditText
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:inputType="text"
+        android:ems="10"
+        android:id="@+id/searchText"
+        android:hint="@string/search_hint"
+        android:layout_alignParentStart="true"
+        />
+
     <ListView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:id="@+id/listView"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true"
         tools:listitem="@android:layout/simple_list_item_2"
-
+        android:layout_below="@+id/searchText"
+        android:layout_alignParentStart="true"
+        android:textFilterEnabled="true"
         />
 
 </RelativeLayout>

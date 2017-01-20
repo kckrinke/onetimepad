@@ -41,4 +41,6 @@
     <string name="msg_select_entry_first">Select the entry first, then tap to copy the one time pad.</string>
     <string name="msg_cancel_exit">OneTimePad is exiting now.</string>
     <string name="msg_unable_save">Unable to save entries due to missing or invalid password.</string>
+    <string name="search_hint">Search</string>
+    <string name="msg_search_nodrag">Cannot re-order while searching the list.</string>
 </resources>

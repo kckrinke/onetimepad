@@ -26,6 +26,8 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.ActionMode;
 import android.view.LayoutInflater;
@@ -55,6 +57,7 @@ import org.json.JSONArray;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Locale;
 
 import static com.onest8.onetimepad.Utils.readFully;
 import static com.onest8.onetimepad.Utils.writeFully;
@@ -63,6 +66,7 @@ public class MainActivity extends AppCompatActivity implements  ActionMode.Callb
     private ArrayList<Entry> entries;
     private EntriesAdapter adapter;
     private View snackView;
+    private EditText searchEntry;
     public static int currentEntryIndex = -1;
     public static boolean clipboardExpires = false;
     public static boolean inForeground = true;
@@ -130,6 +134,10 @@ public class MainActivity extends AppCompatActivity implements  ActionMode.Callb
         noAccountSnackbar.show();
     }
 
+    public void applySearchFilter() {
+        adapter.filter(searchEntry.getText().toString());
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -157,7 +165,7 @@ public class MainActivity extends AppCompatActivity implements  ActionMode.Callb
         listView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
             @Override
             public boolean onItemLongClick(AdapterView<?> adapterView, View view, int i, long l) {
-                nextSelection = entries.get(i);
+                nextSelection = adapter.getVisibleEntries().get(i);
                 startActionMode(MainActivity.this);
                 return true;
             }
@@ -167,6 +175,7 @@ public class MainActivity extends AppCompatActivity implements  ActionMode.Callb
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
                 if (i == currentEntryIndex) {
+                    adapter.setCurrentSelection(null);
                     adapter.setShowOTP(-1);
                     ClipData clip = ClipData.newPlainText("","");
                     ClipboardManager clipboard = (ClipboardManager) getSystemService(CLIPBOARD_SERVICE);
@@ -182,6 +191,25 @@ public class MainActivity extends AppCompatActivity implements  ActionMode.Callb
         if(entries == null || entries.isEmpty()){
             showNoAccount();
         }
+
+        searchEntry = (EditText) findViewById(R.id.searchText);
+
+        searchEntry.addTextChangedListener(
+                new TextWatcher() {
+                    @Override
+                    public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+                    }
+
+                    @Override
+                    public void onTextChanged(CharSequence s, int start, int before, int count) {
+                    }
+
+                    @Override
+                    public void afterTextChanged(Editable s) {
+                        MainActivity.this.applySearchFilter();
+                    }
+                }
+        );
 
         handler = new Handler();
         handlerTask = new Runnable()
@@ -217,6 +245,8 @@ public class MainActivity extends AppCompatActivity implements  ActionMode.Callb
             }
         };
 
+        listView.requestFocus();
+
         Intent sender = getIntent();
         Uri data = sender.getData();
         if (data != null) {
@@ -231,6 +261,7 @@ public class MainActivity extends AppCompatActivity implements  ActionMode.Callb
         handler.post(handlerTask);
         if (!isPasswordLoaded())
             promptForPassword();
+        MainActivity.this.applySearchFilter();
     }
 
     @Override
@@ -244,6 +275,7 @@ public class MainActivity extends AppCompatActivity implements  ActionMode.Callb
 
     protected void addNewAccount(String uri_data) {
         try {
+            adapter.resetFilter();
             Entry e = new Entry(uri_data);
             e.setCurrentOTP(TOTPHelper.generate(e.getSecret()));
             if (entries == null)
@@ -279,6 +311,8 @@ public class MainActivity extends AppCompatActivity implements  ActionMode.Callb
 
         if(entries == null || entries.isEmpty()){
             showNoAccount();
+        } else {
+            applySearchFilter();
         }
     }
 
@@ -379,7 +413,7 @@ public class MainActivity extends AppCompatActivity implements  ActionMode.Callb
     public boolean onCreateActionMode(ActionMode actionMode, Menu menu) {
         MenuInflater inflater = actionMode.getMenuInflater();
         inflater.inflate(R.menu.menu_edit, menu);
-
+        adapter.setIsInActionMode(true);
         return true;
     }
 
@@ -388,7 +422,7 @@ public class MainActivity extends AppCompatActivity implements  ActionMode.Callb
         adapter.setCurrentSelection(nextSelection);
         adapter.notifyDataSetChanged();
         actionMode.setTitle(adapter.getCurrentSelection().getLabel());
-
+        adapter.setIsInActionMode(true);
         return true;
     }
 
@@ -404,6 +438,9 @@ public class MainActivity extends AppCompatActivity implements  ActionMode.Callb
             alert.setPositiveButton(R.string.button_remove, new DialogInterface.OnClickListener() {
                 public void onClick(DialogInterface dialog, int whichButton) {
                     entries.remove(adapter.getCurrentSelection());
+                    adapter.setEntries(entries);
+                    adapter.notifyDataSetChanged();
+                    saveEntries(entries);
 
                     Snackbar.make(snackView, R.string.msg_account_removed, Snackbar.LENGTH_LONG).setCallback(new Snackbar.Callback() {
                         @Override
@@ -416,6 +453,7 @@ public class MainActivity extends AppCompatActivity implements  ActionMode.Callb
                         }
                     }).show();
 
+                    adapter.setIsInActionMode(false);
                     actionMode.finish();
                 }
             });
@@ -423,6 +461,16 @@ public class MainActivity extends AppCompatActivity implements  ActionMode.Callb
             alert.setNegativeButton(R.string.button_cancel, new DialogInterface.OnClickListener() {
                 public void onClick(DialogInterface dialog, int whichButton) {
                     dialog.cancel();
+                    adapter.setIsInActionMode(false);
+                    actionMode.finish();
+                }
+            });
+
+            alert.setOnCancelListener(new DialogInterface.OnCancelListener() {
+                @Override
+                public void onCancel(DialogInterface dialog) {
+                    dialog.cancel();
+                    adapter.setIsInActionMode(false);
                     actionMode.finish();
                 }
             });
@@ -442,6 +490,7 @@ public class MainActivity extends AppCompatActivity implements  ActionMode.Callb
             alert.setPositiveButton(R.string.button_save, new DialogInterface.OnClickListener() {
                 public void onClick(DialogInterface dialog, int whichButton) {
                     adapter.getCurrentSelection().setLabel(input.getEditableText().toString());
+                    adapter.setIsInActionMode(false);
                     actionMode.finish();
                 }
             });
@@ -449,6 +498,16 @@ public class MainActivity extends AppCompatActivity implements  ActionMode.Callb
             alert.setNegativeButton(R.string.button_cancel, new DialogInterface.OnClickListener() {
                 public void onClick(DialogInterface dialog, int whichButton) {
                     dialog.cancel();
+                    adapter.setIsInActionMode(false);
+                    actionMode.finish();
+                }
+            });
+
+            alert.setOnCancelListener(new DialogInterface.OnCancelListener() {
+                @Override
+                public void onCancel(DialogInterface dialog) {
+                    dialog.cancel();
+                    adapter.setIsInActionMode(false);
                     actionMode.finish();
                 }
             });
@@ -460,6 +519,14 @@ public class MainActivity extends AppCompatActivity implements  ActionMode.Callb
             String b32code = new String(new Base32().encode(adapter.getCurrentSelection().getSecret()));
             AlertDialog.Builder alert = new AlertDialog.Builder(this);
             alert.setTitle(adapter.getCurrentSelection().getLabel());
+            alert.setOnCancelListener(new DialogInterface.OnCancelListener() {
+                @Override
+                public void onCancel(DialogInterface dialog) {
+                    dialog.cancel();
+                    adapter.setIsInActionMode(false);
+                    actionMode.finish();
+                }
+            });
             alert.setMessage(b32code);
             try {
                 BitMatrix bitMatrix = new MultiFormatWriter()
@@ -502,6 +569,8 @@ public class MainActivity extends AppCompatActivity implements  ActionMode.Callb
         entries = loadEntries();
         adapter.setEntries(entries);
         adapter.notifyDataSetChanged();
+        adapter.setIsInActionMode(false);
+        applySearchFilter();
     }
 
 

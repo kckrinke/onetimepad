@@ -13,23 +13,27 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.TextView;
+import android.widget.Toast;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 
 public class EntriesAdapter extends BaseAdapter {
-    private List<Entry> entries;
+    private List<Entry> allEntries;
+    private List<Entry> visibleEntries;
     private Entry currentSelection;
 
 
     @Override
     public int getCount() {
-        return entries != null ? entries.size() : 0;
+        return visibleEntries != null ? visibleEntries.size() : 0;
     }
 
     @Override
     public Entry getItem(int i) {
-        return getEntries().get(i);
+        return getVisibleEntries().get(i);
     }
 
     @Override
@@ -48,13 +52,12 @@ public class EntriesAdapter extends BaseAdapter {
             v = vi.inflate(R.layout.row, parent, false);
         }
 
-        if (MainActivity.currentEntryIndex == position) {
+        if (getVisibleEntries().get(position) == getCurrentSelection()) {
+            v.setBackgroundColor(Color.LTGRAY);
+        } else if (getItem(position).getShowOTP() && !getIsInActionMode()) {
             v.setBackgroundColor(Color.YELLOW);
         } else {
             v.setBackgroundColor(Color.TRANSPARENT);
-        }
-        if (getEntries().get(position) == getCurrentSelection()) {
-            v.setBackgroundColor(Color.LTGRAY);
         }
 
         final TextView tt1 = (TextView) v.findViewById(R.id.textViewLabel);
@@ -63,7 +66,7 @@ public class EntriesAdapter extends BaseAdapter {
         TextView tt2 = (TextView) v.findViewById(R.id.textViewOTP);
         v.setTag(position);
         String otp = getItem(position).getCurrentOTP();
-        if (getItem(position).getShowOTP()) {
+        if (getItem(position).getShowOTP() && !getIsInActionMode()) {
             tt2.setText(otp);
         } else if (otp != null) {
             StringBuilder s = new StringBuilder();
@@ -100,6 +103,14 @@ public class EntriesAdapter extends BaseAdapter {
                 final int action = event.getAction();
                 switch (action) {
                     case DragEvent.ACTION_DRAG_STARTED:
+                        if (isFiltered()) {
+                            Toast.makeText(
+                                    v.getContext(),
+                                    R.string.msg_search_nodrag,
+                                    Toast.LENGTH_SHORT
+                            ).show();
+                            return true;
+                        }
                         break;
 
                     case DragEvent.ACTION_DRAG_EXITED:
@@ -113,8 +124,9 @@ public class EntriesAdapter extends BaseAdapter {
                         int to = (Integer) v.getTag();
                         Entry e = getEntries().remove(from);
                         getEntries().add(to, e);
+                        getVisibleEntries().clear();
+                        getVisibleEntries().addAll(getEntries());
                         notifyDataSetChanged();
-
                         return true;
                     }
 
@@ -133,7 +145,16 @@ public class EntriesAdapter extends BaseAdapter {
             @Override
             public boolean onTouch(View v, MotionEvent arg1) {
 
-                if (getCurrentSelection() != getEntries().get(position)) {
+                if (isFiltered() && getIsInActionMode()) {
+                    Toast.makeText(
+                            v.getContext(),
+                            R.string.msg_search_nodrag,
+                            Toast.LENGTH_SHORT
+                    ).show();
+                    return true;
+                }
+
+                if (getCurrentSelection() != getVisibleEntries().get(position)) {
                     return false;
                 }
 
@@ -149,22 +170,22 @@ public class EntriesAdapter extends BaseAdapter {
     }
 
     public void setShowOTP(int idx) {
-        if (getEntries() == null)
+        if (getVisibleEntries() == null)
             return;
-        for (int i = 0; i<entries.size(); i++) {
-            Entry e = getEntries().get(i);
+        for (int i = 0; i<visibleEntries.size(); i++) {
+            Entry e = getVisibleEntries().get(i);
             e.setShowOTP(false);
         }
         if (idx >= 0)
-            getEntries().get(idx).setShowOTP(true);
+            getVisibleEntries().get(idx).setShowOTP(true);
     }
 
     public Entry getEntryByLabel(String label) {
-        if (getEntries() == null)
+        if (getVisibleEntries() == null)
             return null;
 
-        for (int i = 0; i<entries.size(); i++) {
-            Entry e = getEntries().get(i);
+        for (int i = 0; i<visibleEntries.size(); i++) {
+            Entry e = getVisibleEntries().get(i);
             if (e.getLabel().contains(label))
                 return e;
         }
@@ -173,11 +194,19 @@ public class EntriesAdapter extends BaseAdapter {
     }
 
     public List<Entry> getEntries() {
-        return entries;
+        return allEntries;
+    }
+    List<Entry> getVisibleEntries() {
+        return visibleEntries;
     }
 
     public void setEntries(List<Entry> entries) {
-        this.entries = entries;
+        this.allEntries = entries;
+        if (this.visibleEntries == null)
+            this.visibleEntries = new ArrayList<Entry>();
+        else
+            this.visibleEntries.clear();
+        this.visibleEntries.addAll(entries);
     }
 
     public Entry getCurrentSelection() {
@@ -187,4 +216,35 @@ public class EntriesAdapter extends BaseAdapter {
     public void setCurrentSelection(Entry currentSelection) {
         this.currentSelection = currentSelection;
     }
+
+    // Filter Class
+    public void filter(String charText) {
+        charText = charText.toLowerCase(Locale.getDefault());
+        visibleEntries.clear();
+        if (charText.length() == 0) {
+            visibleEntries.addAll(allEntries);
+        } else {
+            for (Entry e : allEntries) {
+                if (e.getLabel().toLowerCase(Locale.getDefault()).contains(charText)) {
+                    visibleEntries.add(e);
+                }
+            }
+        }
+        notifyDataSetChanged();
+    }
+
+    public void resetFilter() {
+        visibleEntries.clear();
+        visibleEntries.addAll(allEntries);
+    }
+
+    public boolean isFiltered() {
+        return visibleEntries.size() != allEntries.size();
+    }
+
+    private boolean isInActionMode = false;
+    public void setIsInActionMode(boolean state) {
+        isInActionMode = state;
+    }
+    public boolean getIsInActionMode() { return isInActionMode; }
 }
