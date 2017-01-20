@@ -37,6 +37,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.WindowManager;
 import android.view.animation.LinearInterpolator;
+import android.view.inputmethod.InputMethodManager;
 import android.webkit.WebView;
 import android.widget.AdapterView;
 import android.widget.EditText;
@@ -57,7 +58,6 @@ import org.json.JSONArray;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Locale;
 
 import static com.onest8.onetimepad.Utils.readFully;
 import static com.onest8.onetimepad.Utils.writeFully;
@@ -135,6 +135,8 @@ public class MainActivity extends AppCompatActivity implements  ActionMode.Callb
     }
 
     public void applySearchFilter() {
+        currentEntryIndex = -1;
+        adapter.setShowOTP(-1);
         adapter.filter(searchEntry.getText().toString());
     }
 
@@ -193,7 +195,9 @@ public class MainActivity extends AppCompatActivity implements  ActionMode.Callb
         }
 
         searchEntry = (EditText) findViewById(R.id.searchText);
-
+        searchEntry.setFocusable(true);
+        searchEntry.setFocusableInTouchMode(true);
+        searchEntry.setVisibility(View.GONE);
         searchEntry.addTextChangedListener(
                 new TextWatcher() {
                     @Override
@@ -210,6 +214,25 @@ public class MainActivity extends AppCompatActivity implements  ActionMode.Callb
                     }
                 }
         );
+        searchEntry.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+            @Override
+            public void onFocusChange(final View v, final boolean hasFocus) {
+                searchEntry.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        searchEntry.requestFocus();
+                        InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+                        if (v.getId() == R.id.searchText) {
+                            if (hasFocus) {
+                                imm.showSoftInput(searchEntry, InputMethodManager.SHOW_IMPLICIT);
+                            } else {
+                                imm.hideSoftInputFromWindow(searchEntry.getWindowToken(), 0);
+                            }
+                        }
+                    }
+                });
+            }
+        });
 
         handler = new Handler();
         handlerTask = new Runnable()
@@ -244,8 +267,6 @@ public class MainActivity extends AppCompatActivity implements  ActionMode.Callb
                 handler.postDelayed(this, 1000);
             }
         };
-
-        listView.requestFocus();
 
         Intent sender = getIntent();
         Uri data = sender.getData();
@@ -405,6 +426,15 @@ public class MainActivity extends AppCompatActivity implements  ActionMode.Callb
                             }
                     )
             .show();
+        } else if (id == R.id.action_search) {
+            searchEntry.setText("");
+            adapter.resetFilter();
+            if (searchEntry.getVisibility() == View.VISIBLE) {
+                searchEntry.setVisibility(View.GONE);
+            } else {
+                searchEntry.setVisibility(View.VISIBLE);
+                searchEntry.requestFocus();
+            }
         }
         return super.onOptionsItemSelected(item);
     }
