@@ -7,6 +7,7 @@ import android.content.Context;
 import android.graphics.Color;
 import android.support.design.widget.Snackbar;
 import android.view.DragEvent;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
@@ -24,7 +25,7 @@ public class EntriesAdapter extends BaseAdapter {
     private List<Entry> allEntries;
     private List<Entry> visibleEntries;
     private Entry currentSelection;
-
+    private long toastEpoch = 0;
 
     @Override
     public int getCount() {
@@ -146,11 +147,18 @@ public class EntriesAdapter extends BaseAdapter {
             public boolean onTouch(View v, MotionEvent arg1) {
 
                 if (isFiltered() && getIsInActionMode()) {
-                    Toast.makeText(
-                            v.getContext(),
-                            R.string.msg_search_nodrag,
-                            Toast.LENGTH_SHORT
-                    ).show();
+                    long now = System.currentTimeMillis();
+                    if (now - toastEpoch >= 1500) {
+                        // throttle toast: show once per 1.5s
+                        toastEpoch = now;
+                        Toast t = Toast.makeText(
+                                v.getContext(),
+                                R.string.msg_search_nodrag,
+                                Toast.LENGTH_SHORT
+                        );
+                        t.setGravity(Gravity.TOP | Gravity.CENTER, 0, 0);
+                        t.show();
+                    }
                     return true;
                 }
 
