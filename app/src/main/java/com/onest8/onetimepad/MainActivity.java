@@ -282,11 +282,13 @@ public class MainActivity extends AppCompatActivity implements  ActionMode.Callb
     @Override
     public void onResume() {
         super.onResume();
-        inForeground = true;
-        handler.post(handlerTask);
-        if (!isPasswordLoaded())
-            promptForPassword();
-        MainActivity.this.applySearchFilter();
+        if (handler != null) {
+            inForeground = true;
+            handler.post(handlerTask);
+            if (!isPasswordLoaded())
+                promptForPassword();
+            MainActivity.this.applySearchFilter();
+        }
     }
 
     @Override
@@ -294,7 +296,8 @@ public class MainActivity extends AppCompatActivity implements  ActionMode.Callb
         super.onPause();
         inForeground = false;
         if (!clipboardExpires) {
-            handler.removeCallbacks(handlerTask);
+            if (handler != null)
+                handler.removeCallbacks(handlerTask);
         }
     }
 
