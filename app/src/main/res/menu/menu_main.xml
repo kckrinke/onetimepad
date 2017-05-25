@@ -23,6 +23,11 @@
         android:title="@string/menu_change_pass"
         app:showAsAction="never" />
     <item
+        android:id="@+id/action_export"
+        android:orderInCategory="100"
+        android:title="@string/menu_export"
+        app:showAsAction="never" />
+    <item
         android:id="@+id/action_about"
         android:orderInCategory="100"
         android:title="@string/menu_about"
