@@ -5,8 +5,6 @@ OneTimePad is based on OTP Authenticator, a two-factor authentication App for An
 
 It implements Time-based One-time Passwords (TOTP) like specified in RFC 6238. Simply scan the QR code (or enter the setup code manually) and login with the generated 6-digit code.
 
-This project was created for the purpose of "stock" inclusion within CopperheadOS and can also be found on F-Droid.
-
 ## Features:
 - Free and Open-Source
 - Requires minimal permissions
@@ -17,25 +15,17 @@ This project was created for the purpose of "stock" inclusion within CopperheadO
 - Compatible with Google Authenticator
 - Manual setup (for devices where the camera is not available)
 
-## Screenshots:
-### Overview:
-![Home Screen](./media/overview_720p.gif) 
-
-### Adding Accounts:
-![Adding Account](./media/add_720p.gif)
-
-### Rearranging Accounts:
-![Home Screen](./media/rearrange_720p.gif)
-
-### Renaming Accounts:
-![Home Screen](./media/rename_720p.gif)
-
-### Deleting Accounts:
-![Home Screen](./media/delete_720p.gif)
+## Backups:
+- When you're ready to backup your secrets, from the main menu select "Export Secrets"
+- Exporting will make a copy of the internal datastore and place it in your SD Card's Documents directory, ie: /sdcard/Documents/OneTimePad.data
+- When the app is first launched, if that file exists, you will be prompted to import the backup with a yes/no dialog
+- If you don't want to import the datastore, rename or move the file somewhere else (like, say, an off-device backup location)
+- If you do import the backup, you will be asked to re-launch the app after the import is completed
+- This feature needs lots of testing!
 
 ## License:
 ```
-Copyright (C) 2016 Kevin C. Krinke
+Copyright (C) 2016-2017 Kevin C. Krinke
 Copyright (C) 2015 Bruno Bierbaumer
 Permission is hereby granted, free of charge, to any person obtaining a copy of
 this software and associated documentation files (the "Software"), to deal in the
