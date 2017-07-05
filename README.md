@@ -35,7 +35,7 @@ This project was created for the purpose of "stock" inclusion within CopperheadO
 
 ## License:
 ```
-Copyright (C) 2016 Kevin C. Krinke
+Copyright (C) 2016 - 2017 Kevin C. Krinke
 Copyright (C) 2015 Bruno Bierbaumer
 Permission is hereby granted, free of charge, to any person obtaining a copy of
 this software and associated documentation files (the "Software"), to deal in the
