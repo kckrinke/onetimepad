@@ -6,19 +6,18 @@
     <item
         android:id="@+id/action_qrcode"
         android:orderInCategory="100"
-        android:icon="@android:drawable/ic_menu_view"
+        android:icon="@drawable/ic_visibility_black_36dp"
         app:showAsAction="ifRoom"
         android:title="@string/menu_qrcode" />
     <item
         android:id="@+id/action_edit"
+        android:icon="@drawable/ic_mode_edit_black_36dp"
         android:orderInCategory="100"
-        android:icon="@android:drawable/ic_menu_edit"
-        app:showAsAction="ifRoom"
         android:title="@string/menu_edit" />
     <item
         android:id="@+id/action_delete"
-        android:orderInCategory="100"
-        android:icon="@android:drawable/ic_menu_delete"
+        android:orderInCategory="101"
+        android:icon="@drawable/ic_delete_black_36dp"
         app:showAsAction="ifRoom"
         android:title="@string/menu_delete" />
 </menu>
