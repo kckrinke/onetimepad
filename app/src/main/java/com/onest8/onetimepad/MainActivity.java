@@ -30,6 +30,7 @@ import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
 import android.view.ActionMode;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -738,7 +739,7 @@ public class MainActivity extends AppCompatActivity implements  ActionMode.Callb
     }
     private void promptForPassword(String message) {
         _pass_prompt_cancelled = false;
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        final AlertDialog.Builder builder = new AlertDialog.Builder(this);
         final Handler handler = new Handler() {
             @Override
             public void handleMessage(Message mesg) {
@@ -767,7 +768,7 @@ public class MainActivity extends AppCompatActivity implements  ActionMode.Callb
                 handler.sendMessage(handler.obtainMessage());
             }
         });
-        AlertDialog dialog = builder.create();
+        final AlertDialog dialog = builder.create();
         dialog.setCancelable(false);
         dialog.setTitle(getStringFormat(R.string.app_name));
 
@@ -777,6 +778,21 @@ public class MainActivity extends AppCompatActivity implements  ActionMode.Callb
         dialog.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE);
 
         dialog.show();
+
+        passwordText.setOnKeyListener(new View.OnKeyListener() {
+            @Override
+            public boolean onKey(View view, int i, KeyEvent keyEvent) {
+                // If the event equals enter pressed
+                if ((keyEvent.getAction() == KeyEvent.ACTION_DOWN) && (i == KeyEvent.KEYCODE_ENTER)) {
+                    cachePassword(passwordText.getText().toString());
+                    handler.sendMessage(handler.obtainMessage());
+                    dialog.dismiss();
+                }
+
+                return false;
+            }
+        });
+
         try { Looper.loop(); }
         catch(RuntimeException e2) {}
         return;
@@ -823,10 +839,33 @@ public class MainActivity extends AppCompatActivity implements  ActionMode.Callb
                 handler.sendMessage(handler.obtainMessage());
             }
         });
-        AlertDialog dialog = builder.create();
+        final AlertDialog dialog = builder.create();
         dialog.setCancelable(false);
         dialog.setTitle(getStringFormat(R.string.app_name));
         dialog.show();
+
+        confirmText.setOnKeyListener(new View.OnKeyListener() {
+            @Override
+            public boolean onKey(View view, int i, KeyEvent keyEvent) {
+                // If the event equals enter pressed
+                if ((keyEvent.getAction() == KeyEvent.ACTION_DOWN) && (i == KeyEvent.KEYCODE_ENTER)) {
+                    String pass = passwordText.getText().toString();
+                    String conf = confirmText.getText().toString();
+                    if (pass.equals(conf) && pass.length() >= 4) {
+                        cachePassword(pass);
+                    } else {
+                        clearPassword();
+                        popShortToast(R.string.msg_invalid_passwords);
+                    }
+                    handler.sendMessage(handler.obtainMessage());
+
+                    dialog.dismiss();
+                }
+
+                return false;
+            }
+        });
+
         try { Looper.loop(); }
         catch(RuntimeException e2) {}
         return;
