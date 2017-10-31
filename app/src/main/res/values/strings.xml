@@ -43,12 +43,4 @@
     <string name="msg_unable_save">Unable to save entries due to missing or invalid password.</string>
     <string name="search_hint">Search</string>
     <string name="msg_search_nodrag">Cannot re-order while searching the list.</string>
-    <string name="msg_extstore_err">Import/Export Error: External storage is not present, or is not writable.</string>
-    <string name="msg_export_fail">Unable to export secrets; file copy failed.</string>
-    <string name="msg_export_pass">Secrets exported to: %s</string>
-    <string name="menu_export">Export Secrets</string>
-    <string name="msg_import_fail">Unable to import secrets; file copy failed.</string>
-    <string name="msg_import_pass">Secrets imported from: %1$s</string>
-    <string name="menu_import">Import</string>
-    <string name="msg_remove_backup_pls">Please rename or remove the backup and launch the app again.</string>
 </resources>

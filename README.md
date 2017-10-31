@@ -15,14 +15,6 @@ It implements Time-based One-time Passwords (TOTP) like specified in RFC 6238. S
 - Compatible with Google Authenticator
 - Manual setup (for devices where the camera is not available)
 
-## Backups:
-- When you're ready to backup your secrets, from the main menu select "Export Secrets"
-- Exporting will make a copy of the internal datastore and place it in your SD Card's Documents directory, ie: /sdcard/Documents/OneTimePad.data
-- When the app is first launched, if that file exists, you will be prompted to import the backup with a yes/no dialog
-- If you don't want to import the datastore, rename or move the file somewhere else (like, say, an off-device backup location)
-- If you do import the backup, you will be asked to re-launch the app after the import is completed
-- This feature needs lots of testing!
-
 ## License:
 ```
 Copyright (C) 2016-2017 Kevin C. Krinke

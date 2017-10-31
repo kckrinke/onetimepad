@@ -4,9 +4,7 @@ import android.Manifest;
 import android.animation.ObjectAnimator;
 import android.annotation.TargetApi;
 import android.app.Activity;
-import android.app.AlarmManager;
 import android.app.AlertDialog;
-import android.app.PendingIntent;
 import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
@@ -18,9 +16,7 @@ import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
-import android.os.Environment;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
@@ -61,10 +57,6 @@ import org.apache.commons.codec.binary.Base32;
 import org.json.JSONArray;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.nio.channels.FileChannel;
 import java.util.ArrayList;
 
 import static com.onest8.onetimepad.Utils.readFully;
@@ -153,37 +145,13 @@ public class MainActivity extends AppCompatActivity implements  ActionMode.Callb
     }
 
     @Override
-    protected void onCreate(final Bundle savedInstanceState) {
+    protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        inForeground = true;
         setTitle(R.string.app_name);
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_SECURE, WindowManager.LayoutParams.FLAG_SECURE);
-        if (getExportedFile().exists()) {
-            AlertDialog.Builder builder = new AlertDialog.Builder(this);
-            builder.setTitle("Backup found");
-            builder.setMessage("A backup has been found in your Documents folder. Do you want to import the backup?");
-            builder.setCancelable(false);
-            builder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
-                public void onClick(DialogInterface dialog, int which) {
-                    dialog.dismiss();
-                    importSecrets();
-                }
-            });
-            builder.setNegativeButton("No", new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialog, int which) {
-                    dialog.dismiss();
-                    exitWithDialog(getString(R.string.msg_remove_backup_pls));
-                }
-            });
-            AlertDialog alert = builder.create();
-            alert.show();
-        } else {
-            onCreatePhase2(savedInstanceState);
-        }
-    }
-    protected void onCreatePhase2(final Bundle savedInstanceState) {
+
         setContentView(R.layout.activity_main);
-        inForeground = true;
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
@@ -193,7 +161,6 @@ public class MainActivity extends AppCompatActivity implements  ActionMode.Callb
         snackView = listView;
 
         clearPassword();
-
         entries = loadEntries();
 
         adapter = new EntriesAdapter();
@@ -475,9 +442,6 @@ public class MainActivity extends AppCompatActivity implements  ActionMode.Callb
                 searchEntry.setVisibility(View.VISIBLE);
                 searchEntry.requestFocus();
             }
-        } else if (id == R.id.action_export) {
-            popLogD("action export selected");
-            exportSecrets();
         }
         return super.onOptionsItemSelected(item);
     }
@@ -655,142 +619,6 @@ public class MainActivity extends AppCompatActivity implements  ActionMode.Callb
         if (_datastore==null)
             _datastore = new File(getFilesDir() + "/" + DATA_FILE);
         return _datastore;
-    }
-
-    private File getExportedFile() {
-        File r = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS);
-        return new File(r.getAbsolutePath() + "/" + getString(R.string.app_name) + ".data");
-    }
-
-    private File getExportedBackupFile() {
-        File r = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS);
-        long epoch = System.currentTimeMillis() / 1000;
-        return new File(r.getAbsolutePath() + "/" + getString(R.string.app_name) + "-" + String.valueOf(epoch) + ".data");
-    }
-
-    private File getImportedBackupFile() {
-        File r = getFilesDir();
-        long epoch = System.currentTimeMillis() / 1000;
-        return new File(r.getAbsolutePath() + "/datastore-" + String.valueOf(epoch) + ".data");
-    }
-
-    /* Checks if external storage is available for read and write */
-    public boolean isExternalStorageWritable() {
-        String state = Environment.getExternalStorageState();
-        if (Environment.MEDIA_MOUNTED.equals(state)) {
-            return true;
-        }
-        return false;
-    }
-
-    /* Checks if external storage is available to at least read */
-    public boolean isExternalStorageReadable() {
-        String state = Environment.getExternalStorageState();
-        if (Environment.MEDIA_MOUNTED.equals(state) ||
-                Environment.MEDIA_MOUNTED_READ_ONLY.equals(state)) {
-            return true;
-        }
-        return false;
-    }
-
-    private boolean isExternalStorageAvailable() {
-        return isExternalStorageReadable() && isExternalStorageWritable();
-    }
-
-    public static boolean copyFile(File sourceFile, File destFile) throws IOException {
-        if (!destFile.getParentFile().exists())
-            destFile.getParentFile().mkdirs();
-        if (!destFile.exists()) {
-            destFile.createNewFile();
-        }
-        FileChannel source = null;
-        FileChannel destination = null;
-        try {
-            source = new FileInputStream(sourceFile).getChannel();
-            destination = new FileOutputStream(destFile).getChannel();
-            destination.transferFrom(source, 0, source.size());
-            return true;
-        } finally {
-            if (source != null) {
-                source.close();
-            }
-            if (destination != null) {
-                destination.close();
-            }
-            return false;
-        }
-    }
-
-    public void exportSecrets() {
-        if (isExternalStorageAvailable()) {
-            File dst = getExportedFile();
-            while (dst.exists()) {
-                // rename it, try again
-                File bkp = getExportedBackupFile();
-                popLogD("Renaming export to: "+bkp.getAbsolutePath());
-                dst.renameTo(bkp);
-                dst = getExportedFile();
-            }
-            popLogD("Using export path: "+dst.getAbsolutePath());
-            boolean proceed = false;
-            if (android.os.Build.VERSION.SDK_INT >= 23) {
-                if (ContextCompat.checkSelfPermission(MainActivity.this, android.Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED
-                  ||ContextCompat.checkSelfPermission(MainActivity.this, android.Manifest.permission.READ_EXTERNAL_STORAGE)  != PackageManager.PERMISSION_GRANTED)
-                {
-                    ActivityCompat.requestPermissions(
-                            MainActivity.this,
-                            new String[]{
-                                    android.Manifest.permission.WRITE_EXTERNAL_STORAGE,
-                                    android.Manifest.permission.READ_EXTERNAL_STORAGE
-                            },
-                            1
-                    );
-                } else {
-                    proceed = true;
-                }
-            } else {
-                proceed = true;
-            }
-            if (proceed) {
-                // copy the internal dat to dst
-                File src = getDatastoreFile();
-                try {
-                    copyFile(src,dst);
-                    popLongToast(R.string.msg_export_pass,dst.getAbsolutePath());
-                } catch (IOException e) {
-                    e.printStackTrace();
-                    popLongToast(R.string.msg_export_fail);
-                }
-            }
-        } else {
-            popLongToast(R.string.msg_extstore_err);
-        }
-    }
-
-    public void importSecrets() {
-        if (isExternalStorageAvailable()) {
-            File dst = getDatastoreFile();
-            File src = getExportedFile();
-            if (dst.exists()) {
-                // rename it, try again
-                File bkp = getImportedBackupFile();
-                popLogD("Renaming import to: "+bkp.getAbsolutePath());
-                dst.renameTo(bkp);
-                dst = getExportedFile();
-            }
-            popLogD("Using import path: "+src.getAbsolutePath());
-            try {
-                clearPassword();
-                copyFile(src,dst);
-                src.renameTo(getExportedBackupFile());
-                exitWithDialog(getString(R.string.msg_import_pass,src.getAbsolutePath()));
-            } catch (IOException e) {
-                e.printStackTrace();
-                exitWithDialog(getString(R.string.msg_import_fail));
-            }
-        } else {
-            exitWithDialog(getString(R.string.msg_extstore_err));
-        }
     }
 
     public ArrayList<Entry> loadEntries() {
