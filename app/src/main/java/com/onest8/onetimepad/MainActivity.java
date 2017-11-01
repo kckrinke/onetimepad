@@ -140,6 +140,10 @@ public class MainActivity extends AppCompatActivity implements  ActionMode.Callb
         adapter.filter(searchEntry.getText().toString());
     }
 
+    public static void doShutdownNow() {
+        System.exit(0);
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -278,11 +282,13 @@ public class MainActivity extends AppCompatActivity implements  ActionMode.Callb
     @Override
     public void onResume() {
         super.onResume();
-        inForeground = true;
-        handler.post(handlerTask);
-        if (!isPasswordLoaded())
-            promptForPassword();
-        MainActivity.this.applySearchFilter();
+        if (handler != null) {
+            inForeground = true;
+            handler.post(handlerTask);
+            if (!isPasswordLoaded())
+                promptForPassword();
+            MainActivity.this.applySearchFilter();
+        }
     }
 
     @Override
@@ -290,7 +296,8 @@ public class MainActivity extends AppCompatActivity implements  ActionMode.Callb
         super.onPause();
         inForeground = false;
         if (!clipboardExpires) {
-            handler.removeCallbacks(handlerTask);
+            if (handler != null)
+                handler.removeCallbacks(handlerTask);
         }
     }
 
@@ -376,7 +383,7 @@ public class MainActivity extends AppCompatActivity implements  ActionMode.Callb
                                             @Override
                                             public void onClick(DialogInterface dialog, int which) {
                                                 MainActivity.this.finish();
-                                                System.exit(0);
+                                                MainActivity.doShutdownNow();
                                             }
                                         })
                                         .show();
@@ -625,9 +632,7 @@ public class MainActivity extends AppCompatActivity implements  ActionMode.Callb
                             promptForPassword(getStringFormat(R.string.msg_remain_tries, 4 - t));
                     }
                     if (isPasswordPromptCancelled()) {
-                        popShortToast(R.string.msg_cancel_exit);
-                        finish();
-                        System.exit(0);
+                        exitWithDialog(getString(R.string.msg_cancel_exit));
                     }
                     if (isPasswordLoaded()) {
                         AesCbcWithIntegrity.SecretKeys keys = AesCbcWithIntegrity.generateKeyFromPassword(retrievePassword(), WELL_KNOWN_SALT);
@@ -642,12 +647,11 @@ public class MainActivity extends AppCompatActivity implements  ActionMode.Callb
                         return entries;
                     }
                 } catch (Exception e) {
+                    e.printStackTrace();
                     clearPassword();
                 }
             }
-            popLongToast(R.string.msg_try_again_failure);
-            finish();
-            System.exit(0);
+            exitWithDialog(getString(R.string.msg_try_again_failure));
         } else {
             saveEntries(new ArrayList<Entry>());
         }
@@ -667,7 +671,7 @@ public class MainActivity extends AppCompatActivity implements  ActionMode.Callb
                     }
                 }
                 if (isPasswordLoaded()==false) {
-                    popLongToast(R.string.msg_unable_save);
+                    exitWithDialog(getString(R.string.msg_unable_save));
                     return false;
                 }
             }
@@ -683,9 +687,7 @@ public class MainActivity extends AppCompatActivity implements  ActionMode.Callb
             writeFully(getDatastoreFile(), ciphertextString.getBytes());
             return true;
         } catch (Exception e) {
-            popLongToast(R.string.msg_try_again_unknown,e.getMessage());
-            finish();
-            System.exit(0);
+            exitWithDialog(getString(R.string.msg_try_again_unknown,e.getMessage()));
         }
         return false;
     }
@@ -848,8 +850,26 @@ public class MainActivity extends AppCompatActivity implements  ActionMode.Callb
         popToast(duration,getStringFormat(sid,args));
     }
     public void popToast(int duration, String msg) {
-        Toast.makeText(getApplicationContext(),msg,duration).show();
-        popLogD("notify: "+msg);
+        Toast.makeText(getApplicationContext(), msg, duration).show();
+        try { Looper.loop(); }
+        catch(RuntimeException e2) {}
+        popLogD("toasted: "+msg);
     }
 
+    public void exitWithDialog(String msg) {
+        new AlertDialog.Builder(MainActivity.this)
+                .setTitle(R.string.app_name)
+                .setMessage(msg)
+                .setCancelable(false)
+                .setPositiveButton(R.string.button_ok, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        MainActivity.this.finish();
+                        System.exit(0);
+                    }
+                })
+                .show();
+        try { Looper.loop(); }
+        catch(RuntimeException e2) {}
+    }
 }

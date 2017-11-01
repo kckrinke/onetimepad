@@ -41,4 +41,6 @@
     <string name="msg_select_entry_first">Selecciona primero la linea, luego toca para copiar el one time pad.</string>
     <string name="msg_cancel_exit">OneTimePad se cerrará ahora.</string>
     <string name="msg_unable_save">Imposible guardar las entradas debido a contraseña invalida o ausente.</string>
+    <string name="msg_search_nodrag">No se puede cambiar el orden mientras se busca en la lista.</string>
+    <string name="search_hint">Buscar</string>
 </resources>
